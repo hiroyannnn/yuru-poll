@@ -1,0 +1,5 @@
+// import {
+//   "hiroyannnn/yuru-poll" @lib,
+// }
+
+pkgtype(kind: "executable")
