@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hiroyannnn/yuru-poll/adapters/terminal"
+
+import {
+  "hiroyannnn/yuru-poll/lib",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct TerminalSink {
+  width : Int
+}
+pub fn TerminalSink::new(width? : Int) -> Self
+pub impl @lib.Sink for TerminalSink
+
+// Type aliases
+
+// Traits

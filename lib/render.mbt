@@ -65,13 +65,12 @@ pub fn render_snapshot(
 }
 
 ///|
-/// 最新発言がどう解釈されたかを 1 行にする。
+/// 最新発言がどう解釈されたかを 1 行にする（全選択肢の分布を % で並べる）。
 pub fn render_last_comment(update : Update) -> String {
-  let label = match update.poll.find(update.judgement.choice) {
-    Some(choice) => choice.label
-    None => update.judgement.choice
-  }
-  let percent = (update.judgement.probability(update.judgement.choice) * 100.0 +
-  0.5).to_int()
-  "最新: [\{update.comment.participant_id}] \{update.comment.text} → \{label} \{percent}%（confidence \{update.judgement.confidence}）"
+  let parts = update.poll.choices.map(choice => {
+    let percent = (update.judgement.probability(choice.key) * 100.0 + 0.5).to_int()
+    "\{choice.label} \{percent}%"
+  })
+  let distribution = parts.join(" / ")
+  "最新: [\{update.comment.participant_id}] \{update.comment.text} → \{distribution}（confidence \{update.judgement.confidence}）"
 }

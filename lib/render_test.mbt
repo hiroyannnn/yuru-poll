@@ -90,6 +90,6 @@ test "render_update は最新発言の解釈を 1 行で描く" {
   )
   inspect(
     @lib.render_last_comment(update),
-    content="最新: [stdin:alice] たぶんファクトリオ → Factorio 88%（confidence 0.79）",
+    content="最新: [stdin:alice] たぶんファクトリオ → Factorio 88% / スプラ 5% / どれでもない 7%（confidence 0.79）",
   )
 }

@@ -21,7 +21,7 @@ test "build_request は state に質問文と発言、criteria に選択肢を�
     "questions": {
       "vote": {
         "type": "choice",
-        "instructions": "この発言はどの選択肢を支持しているか？",
+        "instructions": "この発言は投票の回答です。どの選択肢を支持しているか？「〜はない」「〜は嫌」のような否定はその選択肢への支持ではない。迷っている・雑談・挨拶なら none。",
         "criteria": {
           "factorio": "Factorio: 工場、自動化、ベルトの話",
           "splatoon": "スプラトゥーン: 塗り、対戦、イカ",

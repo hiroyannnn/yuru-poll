@@ -1,0 +1,15 @@
+import {
+  "hiroyannnn/yuru-poll/lib",
+  "hiroyannnn/yuru-poll/runtime",
+  "hiroyannnn/yuru-poll/jev",
+  "hiroyannnn/yuru-poll/adapters/stdin" @stdin_source,
+  "hiroyannnn/yuru-poll/adapters/terminal" @terminal_sink,
+  "moonbitlang/core/env",
+  "moonbitlang/core/string",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+}
+
+supported_targets = "-all+native"
+
+pkgtype(kind: "executable")

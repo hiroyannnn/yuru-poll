@@ -7,6 +7,11 @@ pub const JEV_MODEL : String = "jev-latest"
 pub const VOTE_QUESTION_KEY : String = "vote"
 
 ///|
+/// choice 質問の instructions。否定形・迷い・雑談の扱いを明示すると
+/// ローカルモデル（Gemma 3 4B）でも「Bはないわ」を B の支持と誤判定しにくくなる。
+pub const VOTE_INSTRUCTIONS : String = "この発言は投票の回答です。どの選択肢を支持しているか？「〜はない」「〜は嫌」のような否定はその選択肢への支持ではない。迷っている・雑談・挨拶なら none。"
+
+///|
 /// TypeSafe Jev 互換 API（`POST /v1/systemone`）向けのリクエスト JSON を組み立てる。
 ///
 /// - `state`: 質問文と発言
@@ -22,7 +27,7 @@ pub fn build_request(poll : Poll, comment : String) -> Json {
     "questions": {
       "vote": {
         "type": "choice",
-        "instructions": "この発言はどの選択肢を支持しているか？",
+        "instructions": VOTE_INSTRUCTIONS,
         "criteria": Json::object(criteria),
       },
     },

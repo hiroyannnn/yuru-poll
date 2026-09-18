@@ -14,9 +14,15 @@ pub const JEV_MODEL : String = "jev-latest"
 
 pub const NONE_KEY : String = "none"
 
+pub const VOTE_INSTRUCTIONS : String = "この発言は投票の回答です。どの選択肢を支持しているか？「〜はない」「〜は嫌」のような否定はその選択肢への支持ではない。迷っている・雑談・挨拶なら none。"
+
 pub const VOTE_QUESTION_KEY : String = "vote"
 
 pub fn build_request(Poll, String) -> Json
+
+pub fn display_width(String) -> Int
+
+pub fn format_votes(Double) -> String
 
 pub fn live_chat_messages_url(String, String, String?) -> String
 
@@ -30,9 +36,15 @@ pub fn parse_response(Json) -> Judgement raise ResponseError
 
 pub fn parse_response_text(String) -> Judgement raise ResponseError
 
+pub fn parse_stdin_line(String, at~ : Int64, anonymous_id? : String) -> Comment?
+
 pub fn participant_id(String, String) -> String
 
 pub fn pong_line(String) -> String
+
+pub fn render_last_comment(Update) -> String
+
+pub fn render_snapshot(Poll, Snapshot, width? : Int) -> String
 
 pub fn twitch_login_lines(String, String) -> Array[String]
 

@@ -1,0 +1,37 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hiroyannnn/yuru-poll/cmd/yuru-poll"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub const DEFAULT_PORT : Int = 8787
+
+pub fn parse_cli(ArrayView[String]) -> CliOptions raise CliError
+
+pub let usage : String
+
+// Errors
+pub suberror CliError {
+  MissingValue(String)
+  UnknownOption(String)
+  MissingPoll
+  BadNumber(String)
+} derive(@debug.Debug)
+
+// Types and methods
+pub(all) struct CliOptions {
+  poll_path : String
+  sources : Array[String]
+  sinks : Array[String]
+  port : Int
+  public_url : String?
+  twitch_channel : String?
+  youtube_video_id : String?
+  web_dir : String
+} derive(@debug.Debug)
+
+// Type aliases
+
+// Traits

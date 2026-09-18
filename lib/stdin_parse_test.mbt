@@ -9,11 +9,17 @@ test "参加者ID<TAB>発言 の行を Comment にする（ID には stdin: を�
 }
 
 ///|
-test "TAB が無い行は匿名参加者の発言として扱う" {
+test "TAB が無い行は匿名参加者の発言として扱う（ID は差し替え可能）" {
   debug_inspect(
     @lib.parse_stdin_line("うーん迷う", at=1),
     content=(
       #|Some({ participant_id: "stdin:anon", text: "うーん迷う", at: 1 })
+    ),
+  )
+  debug_inspect(
+    @lib.parse_stdin_line("うーん迷う", at=1, anonymous_id="me"),
+    content=(
+      #|Some({ participant_id: "stdin:me", text: "うーん迷う", at: 1 })
     ),
   )
 }
