@@ -6,6 +6,25 @@ import {
 }
 
 // Values
+pub fn build_request(@lib.Poll, String) -> Json
+
+pub fn parse_irc_line(String) -> @lib.IrcMessage
+
+pub fn parse_live_chat_id(Json) -> String raise @lib.YouTubeError
+
+pub fn parse_live_chat_page(Json) -> @lib.LiveChatPage raise @lib.YouTubeError
+
+pub fn parse_response(Json) -> @lib.Judgement raise @lib.ResponseError
+
+pub fn parse_response_text(String) -> @lib.Judgement raise @lib.ResponseError
+
+pub fn parse_stdin_line(String, at~ : Int64, anonymous_id? : String) -> @lib.Comment?
+
+pub fn participant_id(String, String) -> String
+
+pub fn render_last_comment(@lib.Update) -> String
+
+pub fn render_snapshot(@lib.Poll, @lib.Snapshot, width? : Int) -> String
 
 // Errors
 
@@ -14,7 +33,15 @@ import {
 // Type aliases
 pub using @lib {type Choice}
 
+pub using @lib {type Comment}
+
+pub using @lib {type Engine}
+
+pub using @lib {type IrcMessage}
+
 pub using @lib {type Judgement}
+
+pub using @lib {type LiveChatPage}
 
 pub using @lib {type Poll}
 
@@ -25,5 +52,13 @@ pub using @lib {type ResponseError}
 pub using @lib {type Snapshot}
 
 pub using @lib {type Tally}
+
+pub using @lib {type Update}
+
+pub using @lib {type YouTubeError}
+
+pub using @lib {trait Sink}
+
+pub using @lib {trait Source}
 
 // Traits
