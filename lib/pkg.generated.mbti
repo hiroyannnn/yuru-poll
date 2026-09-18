@@ -8,6 +8,8 @@ import {
 // Values
 pub const CONFIDENT_THRESHOLD : Double = 0.8
 
+pub const DEFAULT_POLLING_INTERVAL_MS : Int = 5000
+
 pub const JEV_MODEL : String = "jev-latest"
 
 pub const NONE_KEY : String = "none"
@@ -16,11 +18,25 @@ pub const VOTE_QUESTION_KEY : String = "vote"
 
 pub fn build_request(Poll, String) -> Json
 
+pub fn live_chat_messages_url(String, String, String?) -> String
+
+pub fn parse_irc_line(String) -> IrcMessage
+
+pub fn parse_live_chat_id(Json) -> String raise YouTubeError
+
+pub fn parse_live_chat_page(Json) -> LiveChatPage raise YouTubeError
+
 pub fn parse_response(Json) -> Judgement raise ResponseError
 
 pub fn parse_response_text(String) -> Judgement raise ResponseError
 
 pub fn participant_id(String, String) -> String
+
+pub fn pong_line(String) -> String
+
+pub fn twitch_login_lines(String, String) -> Array[String]
+
+pub fn videos_list_url(String, String) -> String
 
 // Errors
 pub suberror PollError {
@@ -37,6 +53,12 @@ pub suberror ResponseError {
   TypeMismatch(String)
 } derive(Eq, @debug.Debug)
 
+pub suberror YouTubeError {
+  VideoNotFound
+  NotLive
+  TypeMismatch(String)
+} derive(Eq, @debug.Debug)
+
 // Types and methods
 pub(all) struct Choice {
   key : String
@@ -44,12 +66,40 @@ pub(all) struct Choice {
   description : String
 } derive(Eq, ToJson, @debug.Debug)
 
+pub(all) struct Comment {
+  participant_id : String
+  text : String
+  at : Int64
+} derive(Eq, ToJson, @debug.Debug)
+
+pub struct Engine {
+  poll : Poll
+  tally : Tally
+  sinks : Array[&Sink]
+}
+pub fn Engine::add_sink(Self, &Sink) -> Unit
+pub fn Engine::apply(Self, Comment, Judgement) -> Update
+pub fn Engine::new(Poll) -> Self
+pub fn Engine::snapshot(Self) -> Snapshot
+
+pub enum IrcMessage {
+  Ping(String)
+  Chat(Comment)
+  Other(String)
+} derive(Eq, @debug.Debug)
+
 pub(all) struct Judgement {
   choice : String
   probabilities : Map[String, Double]
   confidence : Double
 } derive(Eq, ToJson, @debug.Debug)
 pub fn Judgement::probability(Self, String) -> Double
+
+pub(all) struct LiveChatPage {
+  comments : Array[Comment]
+  next_page_token : String?
+  polling_interval_ms : Int
+} derive(@debug.Debug)
 
 pub(all) struct Poll {
   question : String
@@ -77,6 +127,20 @@ pub fn Tally::new(Array[String]) -> Self
 pub fn Tally::record(Self, String, Judgement) -> Unit
 pub fn Tally::snapshot(Self) -> Snapshot
 
+pub(all) struct Update {
+  poll : Poll
+  comment : Comment
+  judgement : Judgement
+  snapshot : Snapshot
+} derive(ToJson, @debug.Debug)
+
 // Type aliases
 
 // Traits
+pub(open) trait Sink {
+  fn on_update(Self, Update) -> Unit
+}
+
+pub(open) trait Source {
+  async fn run(Self, async (Comment) -> Judgement) -> Unit
+}
