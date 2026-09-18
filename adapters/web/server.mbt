@@ -90,6 +90,7 @@ async fn WebServer::handle(
       conn.write(svg)
     }
     (Post, "/api/comment") => self.handle_comment(body, conn, submit)
+    (Get, "/favicon.ico") => conn.send_response(204, "No Content")
     _ => send_json(conn, 404, { "error": "not found" })
   }
 }
