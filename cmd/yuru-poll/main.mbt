@@ -17,8 +17,26 @@ async fn start(options : CliOptions) -> Unit {
   let poll = @lib.Poll::parse(@fs.read_file(options.poll_path).text())
   let engine = @lib.Engine::new(poll)
   let sources : Array[&@lib.Source] = []
+  // web は Source（参加フォーム）と Sink（司会者画面・オーバーレイ）を兼ねる 1 つのサーバ。
+  // どちらか一方でも指定されていればサーバを起動し、Source に含まれるときだけ発言を受け付ける。
+  let wants_web_source = options.sources.contains("web")
+  let wants_web_sink = options.sinks.contains("web")
+  if wants_web_source || wants_web_sink {
+    let web = @web_adapter.WebServer::new(
+      engine,
+      port=options.port,
+      web_dir=options.web_dir,
+      public_url?=options.public_url,
+      accept_comments=wants_web_source,
+    )
+    sources.push(web)
+    if wants_web_sink {
+      engine.add_sink(web)
+    }
+  }
   for name in options.sources {
     match name {
+      "web" => ()
       "stdin" => sources.push(@stdin_source.StdinSource::new())
       "twitch" => {
         guard options.twitch_channel is Some(channel) else {
@@ -52,6 +70,7 @@ async fn start(options : CliOptions) -> Unit {
   }
   for name in options.sinks {
     match name {
+      "web" => ()
       "terminal" => engine.add_sink(@terminal_sink.TerminalSink::new())
       _ => {
         println("未対応の sink: \{name}\n\n\{usage}")

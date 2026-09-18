@@ -1,0 +1,29 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hiroyannnn/yuru-poll/adapters/web"
+
+import {
+  "hiroyannnn/yuru-poll/lib",
+}
+
+// Values
+pub async fn guess_lan_ip() -> String
+
+// Errors
+
+// Types and methods
+pub struct WebServer {
+  engine : @lib.Engine
+  port : Int
+  web_dir : String
+  public_url : String?
+  accept_comments : Bool
+  mut latest : @lib.Update?
+  mut join_url : String
+}
+pub fn WebServer::new(@lib.Engine, port? : Int, web_dir? : String, public_url? : String, accept_comments? : Bool) -> Self
+pub impl @lib.Sink for WebServer
+pub impl @lib.Source for WebServer
+
+// Type aliases
+
+// Traits

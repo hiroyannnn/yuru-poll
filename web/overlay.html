@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ゆるアンケート オーバーレイ</title>
+<style>
+  :root { --fg: #ffffff; --bar: #4f8cff; --bar-bg: rgba(0,0,0,.45); --accent: #ffb454; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: transparent; }
+  body { color: var(--fg); font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; font-weight: 700; text-shadow: 0 2px 6px rgba(0,0,0,.8); padding: 8px; }
+  h1 { font-size: 2.4rem; margin: 0 0 8px; line-height: 1.2; }
+  .choice { margin: 6px 0; }
+  .choice .head { display: flex; justify-content: space-between; font-size: 2rem; margin-bottom: 2px; }
+  .choice .votes { color: var(--accent); font-variant-numeric: tabular-nums; }
+  .track { height: 34px; background: var(--bar-bg); border-radius: 8px; overflow: hidden; }
+  .fill { height: 100%; width: 0; background: var(--bar); transition: width .4s ease; }
+  .stats { font-size: 1.4rem; margin-top: 6px; opacity: .9; }
+</style>
+</head>
+<body>
+  <h1 id="question"></h1>
+  <div id="choices"></div>
+  <div class="stats" id="stats"></div>
+<script>
+  let poll = null;
+  const fmt = (v) => (Math.round(v * 10) / 10).toFixed(1);
+
+  async function loadPoll() {
+    poll = await (await fetch('/api/poll')).json();
+    document.getElementById('question').textContent = poll.question;
+    const box = document.getElementById('choices');
+    box.innerHTML = '';
+    for (const c of poll.choices) {
+      if (c.key === 'none') continue;
+      const el = document.createElement('div');
+      el.className = 'choice';
+      el.innerHTML = `<div class="head"><span>${esc(c.label)}</span><span class="votes" data-votes="${c.key}">0.0</span></div>
+        <div class="track"><div class="fill" data-fill="${c.key}"></div></div>`;
+      box.appendChild(el);
+    }
+  }
+
+  async function refresh() {
+    try {
+      const s = (await (await fetch('/api/tally')).json()).snapshot;
+      let max = 0;
+      for (const c of poll.choices) if (c.key !== 'none') max = Math.max(max, s.totals[c.key] || 0);
+      for (const c of poll.choices) {
+        if (c.key === 'none') continue;
+        const v = s.totals[c.key] || 0;
+        document.querySelector(`[data-votes="${c.key}"]`).textContent = fmt(v);
+        document.querySelector(`[data-fill="${c.key}"]`).style.width = (max > 0 ? (v / max * 100) : 0) + '%';
+      }
+      document.getElementById('stats').textContent = `参加 ${s.participants} 人`;
+    } catch (e) { /* 次のポーリングを待つ */ }
+  }
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+
+  loadPoll().then(() => { refresh(); setInterval(refresh, 2000); });
+</script>
+</body>
+</html>
