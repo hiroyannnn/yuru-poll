@@ -26,6 +26,6 @@ pub async fn run(
 
 ///|
 /// 標準エラー出力に 1 行書く（標準出力はターミナル Sink が使うので分ける）。
-pub async fn log_error(message : String) -> Unit {
+pub async fn log(message : String) -> Unit {
   @stdio.stderr.write("[yuru-poll] \{message}\n")
 }

@@ -6,7 +6,7 @@ import {
 }
 
 // Values
-pub async fn log_error(String) -> Unit
+pub async fn log(String) -> Unit
 
 pub async fn run(@lib.Engine, async (@lib.Poll, @lib.Comment) -> @lib.Judgement, Array[&@lib.Source]) -> Unit
 

@@ -22,7 +22,7 @@ pub impl @lib.Source for StdinSource with fn run(self, submit) {
       continue
     }
     (submit(comment) |> ignore) catch {
-      err => @runtime.log_error("stdin: 判定に失敗: \{err}")
+      err => @runtime.log("stdin: 判定に失敗: \{err}")
     }
   }
 }

@@ -4,6 +4,8 @@ import {
   "hiroyannnn/yuru-poll/jev",
   "hiroyannnn/yuru-poll/adapters/stdin" @stdin_source,
   "hiroyannnn/yuru-poll/adapters/terminal" @terminal_sink,
+  "hiroyannnn/yuru-poll/adapters/twitch" @twitch_source,
+  "hiroyannnn/yuru-poll/adapters/youtube" @youtube_source,
   "moonbitlang/core/env",
   "moonbitlang/core/string",
   "moonbitlang/async",

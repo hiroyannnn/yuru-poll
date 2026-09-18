@@ -20,6 +20,30 @@ async fn start(options : CliOptions) -> Unit {
   for name in options.sources {
     match name {
       "stdin" => sources.push(@stdin_source.StdinSource::new())
+      "twitch" => {
+        guard options.twitch_channel is Some(channel) else {
+          println(
+            "--source twitch には --twitch <channel> が必要です\n\n\{usage}",
+          )
+          return
+        }
+        sources.push(@twitch_source.TwitchSource::new(channel))
+      }
+      "youtube" => {
+        guard options.youtube_video_id is Some(video_id) else {
+          println(
+            "--source youtube には --youtube <videoId> が必要です\n\n\{usage}",
+          )
+          return
+        }
+        guard @env.get_env_var("YOUTUBE_API_KEY") is Some(api_key) else {
+          println(
+            "--source youtube には環境変数 YOUTUBE_API_KEY が必要です",
+          )
+          return
+        }
+        sources.push(@youtube_source.YouTubeSource::new(video_id, api_key))
+      }
       _ => {
         println("未対応の source: \{name}\n\n\{usage}")
         return
