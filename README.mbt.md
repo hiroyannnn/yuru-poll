@@ -40,7 +40,7 @@ moon test --target all       # コアは wasm / wasm-gc / js / native、native �
 moon build --target native
 ```
 
-判定サーバは TypeSafe Jev、またはローカルの [open-jev](https://github.com/hiroyannnn/open-jev) を使います。
+判定サーバは TypeSafe Jev、またはローカルの [open-jev](https://github.com/daseinlabs/open-jev) を使います。
 
 ```bash
 export JEV_URL=http://127.0.0.1:8000   # 既定値
@@ -234,6 +234,6 @@ pub(open) trait Sink {
 
 - [bobzhang/qrc](https://github.com/bobzhang/qrc)（ISC License）— 参加用 QR コードの SVG 生成に使用。OCaml の [qrc](https://github.com/dbuenzli/qrc)（Daniel Bünzli、ISC）の MoonBit 移植
 - [moonbitlang/async](https://github.com/moonbitlang/async)（Apache-2.0）— イベントループ、ソケット、TLS、HTTP クライアント/サーバ
-- [TypeSafe Jev](https://docs.typesafe.ai/) / [open-jev](https://github.com/hiroyannnn/open-jev) — 判定 API
+- [TypeSafe Jev](https://docs.typesafe.ai/) / [open-jev](https://github.com/daseinlabs/open-jev) — 判定 API
 
 ライセンス表記の詳細は `NOTICE` を参照してください。本プロジェクトは Apache-2.0 です。
