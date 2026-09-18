@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hiroyannnn/yuru-poll"
+
+import {
+  "hiroyannnn/yuru-poll/lib",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+pub using @lib {type Choice}
+
+pub using @lib {type Poll}
+
+pub using @lib {type PollError}
+
+// Traits

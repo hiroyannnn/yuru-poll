@@ -1,0 +1,38 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hiroyannnn/yuru-poll/lib"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub const NONE_KEY : String = "none"
+
+// Errors
+pub suberror PollError {
+  InvalidJson(String)
+  MissingField(String)
+  TypeMismatch(String)
+  DuplicateKey(String)
+  EmptyChoices
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+pub(all) struct Choice {
+  key : String
+  label : String
+  description : String
+} derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct Poll {
+  question : String
+  choices : Array[Choice]
+} derive(Eq, ToJson, @debug.Debug)
+pub fn Poll::find(Self, String) -> Choice?
+pub fn Poll::from_json(Json) -> Self raise PollError
+pub fn Poll::keys(Self) -> Array[String]
+pub fn Poll::parse(String) -> Self raise PollError
+
+// Type aliases
+
+// Traits
