@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub const CONFIDENT_THRESHOLD : Double = 0.8
+
 pub const JEV_MODEL : String = "jev-latest"
 
 pub const NONE_KEY : String = "none"
@@ -17,6 +19,8 @@ pub fn build_request(Poll, String) -> Json
 pub fn parse_response(Json) -> Judgement raise ResponseError
 
 pub fn parse_response_text(String) -> Judgement raise ResponseError
+
+pub fn participant_id(String, String) -> String
 
 // Errors
 pub suberror PollError {
@@ -55,6 +59,23 @@ pub fn Poll::find(Self, String) -> Choice?
 pub fn Poll::from_json(Json) -> Self raise PollError
 pub fn Poll::keys(Self) -> Array[String]
 pub fn Poll::parse(String) -> Self raise PollError
+
+pub(all) struct Snapshot {
+  totals : Map[String, Double]
+  participants : Int
+  confident : Int
+  wavering : Int
+  none_count : Int
+} derive(Eq, ToJson, @debug.Debug)
+
+pub struct Tally {
+  keys : Array[String]
+  latest_by_participant : Map[String, Judgement]
+}
+pub fn Tally::latest(Self, String) -> Judgement?
+pub fn Tally::new(Array[String]) -> Self
+pub fn Tally::record(Self, String, Judgement) -> Unit
+pub fn Tally::snapshot(Self) -> Snapshot
 
 // Type aliases
 

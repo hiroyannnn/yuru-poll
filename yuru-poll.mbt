@@ -5,4 +5,6 @@ pub using @lib {
   type PollError,
   type Judgement,
   type ResponseError,
+  type Tally,
+  type Snapshot,
 }

@@ -22,4 +22,8 @@ pub using @lib {type PollError}
 
 pub using @lib {type ResponseError}
 
+pub using @lib {type Snapshot}
+
+pub using @lib {type Tally}
+
 // Traits
