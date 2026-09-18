@@ -14,6 +14,10 @@ pub const VOTE_QUESTION_KEY : String = "vote"
 
 pub fn build_request(Poll, String) -> Json
 
+pub fn parse_response(Json) -> Judgement raise ResponseError
+
+pub fn parse_response_text(String) -> Judgement raise ResponseError
+
 // Errors
 pub suberror PollError {
   InvalidJson(String)
@@ -23,12 +27,25 @@ pub suberror PollError {
   EmptyChoices
 } derive(Eq, @debug.Debug)
 
+pub suberror ResponseError {
+  InvalidJson(String)
+  MissingField(String)
+  TypeMismatch(String)
+} derive(Eq, @debug.Debug)
+
 // Types and methods
 pub(all) struct Choice {
   key : String
   label : String
   description : String
 } derive(Eq, ToJson, @debug.Debug)
+
+pub(all) struct Judgement {
+  choice : String
+  probabilities : Map[String, Double]
+  confidence : Double
+} derive(Eq, ToJson, @debug.Debug)
+pub fn Judgement::probability(Self, String) -> Double
 
 pub(all) struct Poll {
   question : String
