@@ -6,7 +6,13 @@ import {
 }
 
 // Values
+pub const JEV_MODEL : String = "jev-latest"
+
 pub const NONE_KEY : String = "none"
+
+pub const VOTE_QUESTION_KEY : String = "vote"
+
+pub fn build_request(Poll, String) -> Json
 
 // Errors
 pub suberror PollError {
