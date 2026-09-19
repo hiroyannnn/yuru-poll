@@ -36,7 +36,8 @@ binding = "AI"
 #   JEV_URL=http://127.0.0.1:8000
 #   JEV_API_KEY=local
 #
-# Vercel AI Gateway の Jev（下の [vars] のコメントを外す。キーは AI Gateway の API キー）:
-# [vars]
-# JEV_URL = "https://ai-gateway.vercel.sh/typesafe"
-# JEV_MODEL = "typesafe-ai/jev"
+# 本番の判定先: Vercel AI Gateway の Jev（キーは AI Gateway の API キーをシークレットで入れる）。
+# Cloudflare 側の Jev（AI バインディング）に戻すときは、この [vars] をコメントアウトする。
+[vars]
+JEV_URL = "https://ai-gateway.vercel.sh/typesafe"
+JEV_MODEL = "typesafe-ai/jev"
