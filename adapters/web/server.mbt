@@ -6,6 +6,7 @@
 /// - `GET /overlay`  OBS ブラウザソース用（背景透過、棒グラフだけ）
 /// - `GET /api/poll` 質問と選択肢
 /// - `GET /api/tally` 集計 JSON（最新の発言と判定を含む）
+/// - `GET /api/history` 発言の履歴（新しい順、最大 50 件）
 /// - `GET /api/join-url` 参加用 URL、`GET /api/qr.svg` その QR コード
 /// - `POST /api/comment` `{participant_id, comment}` を判定して分布を返す
 pub struct WebServer {
@@ -79,16 +80,26 @@ async fn WebServer::handle(
     (Get, "/overlay") => self.send_static(conn, "overlay.html")
     (Get, "/api/poll") => send_json(conn, 200, self.engine.poll.to_json())
     (Get, "/api/tally") => send_json(conn, 200, self.tally_json())
+    // native 版は司会者自身が LAN 内で起動するものなので、履歴に認証は掛けない
+    (Get, "/api/history") =>
+      send_json(conn, 200, { "history": self.engine.history().to_json() })
     (Get, "/api/join-url") =>
       send_json(conn, 200, {
         "url": self.join_url,
         "accept_comments": self.accept_comments,
       })
-    (Get, "/api/qr.svg") => {
-      let svg = @qr_render.to_svg(@qrc.encode(self.join_url))
-      conn.send_response(200, "OK", extra_headers=content_type("image/svg+xml"))
-      conn.write(svg)
-    }
+    (Get, "/api/qr.svg") =>
+      match @lib.qr_svg(self.join_url) {
+        Some(svg) => {
+          conn.send_response(
+            200,
+            "OK",
+            extra_headers=content_type("image/svg+xml"),
+          )
+          conn.write(svg)
+        }
+        None => send_json(conn, 500, { "error": "QR を生成できません" })
+      }
     (Post, "/api/comment") => self.handle_comment(body, conn, submit)
     (Get, "/favicon.ico") => conn.send_response(204, "No Content")
     _ => send_json(conn, 404, { "error": "not found" })

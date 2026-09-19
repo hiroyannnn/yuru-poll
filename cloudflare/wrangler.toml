@@ -19,9 +19,18 @@ html_handling = "none"
 name = "ROOMS"
 class_name = "RoomDO"
 
+# ルーム作成の回数制限（全体で 1 個）
+[[durable_objects.bindings]]
+name = "GATE"
+class_name = "GateDO"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["RoomDO"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["GateDO"]
 
 # 判定は Workers AI の Jev（typesafe/jev）。利用には Cloudflare へのログインが必要
 [ai]

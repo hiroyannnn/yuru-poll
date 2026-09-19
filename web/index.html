@@ -19,6 +19,16 @@
   .stats { color: var(--muted); margin-top: 16px; font-size: 1.05rem; }
   .last { margin-top: 20px; padding: 12px; background: #1d2029; border-radius: 8px; color: var(--muted); }
   .last b { color: var(--fg); }
+  .history { margin-top: 20px; display: none; }
+  .history h2 { font-size: 1rem; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
+  .history ol { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; border: 1px solid #2a2e3a; border-radius: 8px; }
+  .history li { padding: 8px 12px; border-bottom: 1px solid #2a2e3a; display: flex; justify-content: space-between; gap: 12px; }
+  .history li:last-child { border-bottom: 0; }
+  .history .said { overflow-wrap: anywhere; }
+  .history .read { color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .admin { margin-top: 16px; display: none; gap: 8px; flex-wrap: wrap; }
+  .admin button { font-size: .9rem; padding: 8px 12px; border-radius: 8px; border: 1px solid #3a3f4d; background: transparent; color: var(--muted); cursor: pointer; }
+  .admin button.danger { color: #ff7b7b; border-color: #5a3038; }
   aside { text-align: center; }
   aside img { width: 100%; max-width: 240px; background: #fff; padding: 8px; border-radius: 8px; }
   aside .url { word-break: break-all; font-size: .95rem; color: var(--muted); margin-top: 8px; }
@@ -32,6 +42,11 @@
     <div id="choices"></div>
     <div class="stats" id="stats"></div>
     <div class="last" id="last">まだ発言はありません</div>
+    <div class="history" id="history"><h2>発言の履歴（新しい順）</h2><ol id="history-list"></ol></div>
+    <div class="admin" id="admin">
+      <button type="button" id="reset">集計をリセット</button>
+      <button type="button" id="close" class="danger">ルームを閉じる</button>
+    </div>
   </section>
   <aside>
     <img id="qr" alt="参加用 QR コード">
@@ -43,6 +58,9 @@
   // API の基点。native 版では '/api'、ホスト版では '/r/<ルーム>/api' になる。
   const API = location.pathname.replace(/\/(join|overlay)?\/?$/, '') + '/api';
   const state = { poll: null };
+  // ホスト版の司会者トークンは URL のフラグメント（#host=...）で渡される。native 版には無い
+  const hostToken = new URLSearchParams(location.hash.slice(1)).get('host') || '';
+  const authHeaders = hostToken ? { Authorization: 'Bearer ' + hostToken } : {};
   const fmt = (v) => (Math.round(v * 10) / 10).toFixed(1);
 
   async function loadPoll() {
@@ -91,9 +109,45 @@
     } catch (e) { /* サーバ停止中は次のポーリングを待つ */ }
   }
 
+  // 発言の履歴。ホスト版では司会者トークンが無いと 401 になるので、そのときは欄ごと出さない
+  async function refreshHistory() {
+    try {
+      const res = await fetch(API + '/history', { headers: authHeaders });
+      if (!res.ok) return;
+      const { history } = await res.json();
+      const label = (k) => (state.poll.choices.find((c) => c.key === k) || { label: k }).label;
+      document.getElementById('history').style.display = 'block';
+      document.getElementById('history-list').innerHTML = history.map((h) => {
+        const p = Math.round((h.judgement.probabilities[h.judgement.choice] || 0) * 100);
+        return `<li><span class="said">${esc(h.comment.text)}</span><span class="read">${esc(label(h.judgement.choice))} ${p}%</span></li>`;
+      }).join('') || '<li><span class="said">まだ発言はありません</span></li>';
+    } catch (e) { /* 次のポーリングを待つ */ }
+  }
+
+  async function adminAction(path, message) {
+    if (!confirm(message)) return false;
+    const res = await fetch(API + path, { method: 'POST', headers: authHeaders });
+    if (!res.ok) alert('できませんでした: ' + ((await res.json()).error || res.status));
+    return res.ok;
+  }
+
+  if (hostToken) {
+    document.getElementById('admin').style.display = 'flex';
+    document.getElementById('reset').addEventListener('click', async () => {
+      if (await adminAction('/reset', '集計と履歴を空にします。よろしいですか？')) { refresh(); refreshHistory(); }
+    });
+    document.getElementById('close').addEventListener('click', async () => {
+      if (await adminAction('/close', 'ルームを閉じて、集計と履歴を完全に消します。元に戻せません。よろしいですか？')) location.href = '/';
+    });
+  }
+
   function esc(s) { return String(s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 
-  loadPoll().then(() => { refresh(); setInterval(refresh, 2000); });
+  loadPoll().then(() => {
+    refresh();
+    refreshHistory();
+    setInterval(() => { refresh(); refreshHistory(); }, 2000);
+  });
   loadJoinUrl();
   document.getElementById('qr').src = API + '/qr.svg';
 </script>

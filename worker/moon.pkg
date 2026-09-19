@@ -3,8 +3,6 @@ import {
   "moonbitlang/core/json",
   "moonbitlang/core/debug",
   "moonbitlang/async/js_async",
-  "bobzhang/qrc",
-  "bobzhang/qrc/render" @qr_render,
 }
 
 import {
@@ -17,7 +15,13 @@ supported_targets = "-all+js"
 options(
   link: {
     "js": {
-      "exports": [ "room_new", "room_restore", "room_handle" ],
+      "exports": [
+        "room_new",
+        "room_restore",
+        "room_handle",
+        "limiter_new",
+        "limiter_allow",
+      ],
       "format": "esm",
     },
   },

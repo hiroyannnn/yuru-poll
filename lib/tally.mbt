@@ -41,6 +41,12 @@ pub fn Tally::record(
 }
 
 ///|
+/// 全参加者の判定を消す。
+pub fn Tally::clear(self : Tally) -> Unit {
+  self.latest_by_participant.clear()
+}
+
+///|
 /// 参加者の最新判定。
 pub fn Tally::latest(self : Tally, participant_id : String) -> Judgement? {
   self.latest_by_participant.get(participant_id)

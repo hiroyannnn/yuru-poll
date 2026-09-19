@@ -3,6 +3,7 @@ package "hiroyannnn/yuru-poll/lib"
 
 import {
   "moonbitlang/core/debug",
+  "naoto24kawa/moonqr/encode",
 }
 
 // Values
@@ -10,11 +11,13 @@ pub const CONFIDENT_THRESHOLD : Double = 0.8
 
 pub const DEFAULT_POLLING_INTERVAL_MS : Int = 5000
 
+pub const HISTORY_LIMIT : Int = 50
+
 pub const JEV_MODEL : String = "jev-latest"
 
 pub const NONE_KEY : String = "none"
 
-pub const VOTE_INSTRUCTIONS : String = "この発言は投票の回答です。どの選択肢を支持しているか？「〜はない」「〜は嫌」のような否定はその選択肢への支持ではない。迷っている・雑談・挨拶なら none。"
+pub const VOTE_INSTRUCTIONS : String = "この発言は投票の回答です。どの選択肢を支持しているか？複数の選択肢で迷っている発言は、挙げられた選択肢のあいだで確率を分ける。「〜はない」「〜は嫌」のような否定はその選択肢への支持ではない。どの選択肢にも触れていない雑談・挨拶は none。"
 
 pub const VOTE_QUESTION_KEY : String = "vote"
 
@@ -41,6 +44,10 @@ pub fn parse_stdin_line(String, at~ : Int64, anonymous_id? : String) -> Comment?
 pub fn participant_id(String, String) -> String
 
 pub fn pong_line(String) -> String
+
+pub fn qr_matrix(String) -> @encode.Matrix?
+
+pub fn qr_svg(String) -> String?
 
 pub fn render_last_comment(Update) -> String
 
@@ -94,13 +101,21 @@ pub struct Engine {
   poll : Poll
   tally : Tally
   sinks : Array[&Sink]
+  recent : Array[HistoryEntry]
 }
 pub fn Engine::add_sink(Self, &Sink) -> Unit
 pub fn Engine::apply(Self, Comment, Judgement) -> Update
 pub fn Engine::dump(Self) -> Json
+pub fn Engine::history(Self) -> Array[HistoryEntry]
 pub fn Engine::new(Poll) -> Self
+pub fn Engine::reset(Self) -> Unit
 pub fn Engine::restore(Json) -> Self raise PersistError
 pub fn Engine::snapshot(Self) -> Snapshot
+
+pub(all) struct HistoryEntry {
+  comment : Comment
+  judgement : Judgement
+} derive(Eq, ToJson, @debug.Debug)
 
 pub enum IrcMessage {
   Ping(String)
@@ -125,11 +140,22 @@ pub(all) struct LiveChatPage {
 pub(all) struct Poll {
   question : String
   choices : Array[Choice]
+  instructions : String?
 } derive(Eq, ToJson, @debug.Debug)
 pub fn Poll::find(Self, String) -> Choice?
 pub fn Poll::from_json(Json) -> Self raise PollError
 pub fn Poll::keys(Self) -> Array[String]
 pub fn Poll::parse(String) -> Self raise PollError
+
+pub struct RateLimiter {
+  limit : Int
+  window_ms : Int64
+  hits : Map[String, Array[Int64]]
+  mut calls_since_sweep : Int
+}
+pub fn RateLimiter::allow(Self, String, Int64) -> Bool
+pub fn RateLimiter::new(limit~ : Int, window_ms~ : Int64) -> Self
+pub fn RateLimiter::tracked_keys(Self) -> Int
 
 pub(all) struct Snapshot {
   totals : Map[String, Double]
@@ -143,6 +169,7 @@ pub struct Tally {
   keys : Array[String]
   latest_by_participant : Map[String, Judgement]
 }
+pub fn Tally::clear(Self) -> Unit
 pub fn Tally::latest(Self, String) -> Judgement?
 pub fn Tally::new(Array[String]) -> Self
 pub fn Tally::record(Self, String, Judgement) -> Unit

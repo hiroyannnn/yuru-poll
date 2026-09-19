@@ -8,8 +8,6 @@ import {
   "moonbitlang/async/io",
   "moonbitlang/async/process",
   "moonbitlang/async/socket",
-  "bobzhang/qrc",
-  "bobzhang/qrc/render" @qr_render,
 }
 
 supported_targets = "-all+native"

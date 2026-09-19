@@ -33,7 +33,7 @@ test "Poll::parse は質問文と選択肢を読み、none を末尾に自動付
   inspect(poll.choices[2].label, content="どれでもない")
   inspect(
     poll.choices[2].description,
-    content="どれも支持していない、雑談、意味不明",
+    content="投票と関係のない雑談・挨拶・意味不明な発言、または選択肢を否定しているだけの発言",
   )
 }
 

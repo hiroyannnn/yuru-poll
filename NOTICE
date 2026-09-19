@@ -7,29 +7,24 @@ This product depends on the following third-party MoonBit packages.
 Their license texts are reproduced below as required by their terms.
 
 --------------------------------------------------------------------------------
-bobzhang/qrc (QR code encoder, used for the participant QR code)
-https://github.com/bobzhang/qrc
-Declared license: ISC (per moon.mod and README of the package; note that the
-LICENSE file bundled in the published package is the Apache-2.0 template).
-The package is a MoonBit port of the OCaml "qrc" library by Daniel Bünzli,
-which is also distributed under the ISC License.
+naoto24kawa/moonqr (QR code encoder, used for the participant QR code;
+its decoder is used only in tests to verify that generated codes are readable)
+https://github.com/elchika-inc/moonqr
+License: Apache License, Version 2.0
 
-ISC License
+The following is the NOTICE file distributed with moonqr, reproduced as required
+by section 4(d) of the Apache License:
 
-Copyright (c) the bobzhang/qrc authors
-Copyright (c) 2020 The qrc programmers (Daniel Bünzli)
+  moonqr
+  Copyright 2026 naoto24kawa
 
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
+  Portions derived from jsQR (https://github.com/cozmo/jsQR)
+  Copyright (c) 2016 Cosmo Wolfe
+  Licensed under the Apache License, Version 2.0
 
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  QR code RS block / alignment position tables derived from qrcode-generator
+  (https://github.com/kazuhikoarase/qrcode-generator)
+  Copyright (c) 2009 Kazuhiko Arase, MIT License
 
 --------------------------------------------------------------------------------
 moonbitlang/async (event loop, sockets, TLS, HTTP client/server)

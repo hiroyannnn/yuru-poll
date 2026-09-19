@@ -27,27 +27,40 @@ fn fake_judge(seen : Array[String]) -> async (String) -> String {
 suberror JudgeDown
 
 ///|
+const HOST_TOKEN : String = "host-secret"
+
+///|
+fn context(
+  now_ms? : Int64 = 0,
+  client? : String = "203.0.113.1",
+  token? : String = "",
+  model? : String = "",
+) -> @worker.Context {
+  { join_url: "https://example.test/r/x/join", model, now_ms, client, token, }
+}
+
+///|
 async fn request(
   room : @worker.Room,
   meth : String,
   path : String,
   body? : String = "",
   judge? : async (String) -> String = fake_judge([]),
+  ctx? : @worker.Context = context(),
 ) -> @worker.Reply {
-  @worker.route(
-    room,
-    meth,
-    path,
-    body,
-    judge,
-    join_url="https://example.test/r/x/join",
-  )
+  @worker.route(room, meth, path, body, judge, ctx)
 }
 
 ///|
 async fn created_room() -> @worker.Room {
   let room = @worker.room_new()
-  let reply = request(room, "POST", "/api/room", body=poll_json)
+  let reply = request(
+    room,
+    "POST",
+    "/api/room",
+    body=poll_json,
+    ctx=context(token=HOST_TOKEN),
+  )
   assert_eq(reply.status, 200)
   room
 }
@@ -135,6 +148,7 @@ async test "同じ参加者の言い直しは上書きされ、tally に最新�
     "POST",
     "/api/comment",
     body="{\"participant_id\": \"p1\", \"comment\": \"やっぱり\"}",
+    ctx=context(now_ms=5000),
   )
   |> ignore
   let tally = request(room, "GET", "/api/tally")
@@ -273,30 +287,189 @@ async test "Reply::to_json_text は JS グルーが読む形になる" {
 }
 
 ///|
-async test "route は model を指定でき、判定リクエストに載る（空なら既定値）" {
+async test "Context の model が判定リクエストに載る（空なら既定値）" {
   let room = created_room()
   let seen : Array[String] = []
-  let body = "{\"participant_id\": \"p1\", \"comment\": \"A かな\"}"
-  @worker.route(
+  request(
     room,
     "POST",
     "/api/comment",
-    body,
-    fake_judge(seen),
-    join_url="",
-    model="typesafe-ai/jev",
+    body="{\"participant_id\": \"p1\", \"comment\": \"A かな\"}",
+    judge=fake_judge(seen),
+    ctx=context(model="typesafe-ai/jev"),
   )
   |> ignore
-  @worker.route(
+  request(
     room,
     "POST",
     "/api/comment",
-    body,
-    fake_judge(seen),
-    join_url="",
-    model="",
+    body="{\"participant_id\": \"p2\", \"comment\": \"A かな\"}",
+    judge=fake_judge(seen),
   )
   |> ignore
   assert_true(seen[0].contains("\"model\":\"typesafe-ai/jev\""))
   assert_true(seen[1].contains("\"model\":\"jev-latest\""))
+}
+
+///|
+async test "履歴・リセット・削除は司会者トークンが必要（無いか違えば 401）" {
+  let room = created_room()
+  request(
+    room,
+    "POST",
+    "/api/comment",
+    body="{\"participant_id\": \"p1\", \"comment\": \"A かな\"}",
+  )
+  |> ignore
+  inspect(request(room, "GET", "/api/history").status, content="401")
+  inspect(
+    request(room, "GET", "/api/history", ctx=context(token="wrong")).status,
+    content="401",
+  )
+  inspect(request(room, "POST", "/api/reset").status, content="401")
+  inspect(request(room, "POST", "/api/close").status, content="401")
+  let history = request(
+    room,
+    "GET",
+    "/api/history",
+    ctx=context(token=HOST_TOKEN),
+  )
+  inspect(history.status, content="200")
+  guard @json.parse(history.body)
+    is Object(
+      {
+        "history": Array(
+          [Object({ "comment": Object({ "text": String(text), .. }), .. })]
+        ),
+        ..
+      }
+    ) else {
+    fail("履歴が 1 件返るはず")
+  }
+  inspect(text, content="A かな")
+}
+
+///|
+async test "リセットは集計と履歴を空にして state を返し、削除は closed を立てる" {
+  let room = created_room()
+  request(
+    room,
+    "POST",
+    "/api/comment",
+    body="{\"participant_id\": \"p1\", \"comment\": \"A かな\"}",
+  )
+  |> ignore
+  let reset = request(room, "POST", "/api/reset", ctx=context(token=HOST_TOKEN))
+  inspect(reset.status, content="200")
+  assert_true(reset.state is Some(_))
+  assert_true(
+    request(room, "GET", "/api/tally").body.contains("\"participants\":0"),
+  )
+  let closed = request(
+    room,
+    "POST",
+    "/api/close",
+    ctx=context(token=HOST_TOKEN),
+  )
+  inspect(closed.status, content="200")
+  inspect(closed.closed, content="true")
+  inspect(request(room, "GET", "/api/poll").status, content="404")
+}
+
+///|
+async test "司会者トークンは state に入り、復元後も有効" {
+  let room = created_room()
+  let reply = request(
+    room,
+    "POST",
+    "/api/comment",
+    body="{\"participant_id\": \"p1\", \"comment\": \"A かな\"}",
+  )
+  guard reply.state is Some(state) else { fail("state が付くはず") }
+  let restored = @worker.room_new()
+  inspect(@worker.room_restore(restored, state), content="")
+  inspect(
+    request(restored, "GET", "/api/history", ctx=context(token=HOST_TOKEN)).status,
+    content="200",
+  )
+  inspect(
+    request(restored, "GET", "/api/history", ctx=context(token="wrong")).status,
+    content="401",
+  )
+}
+
+///|
+async test "同じ参加者の連投は 429、時間が空けば通る" {
+  let room = created_room()
+  let body = "{\"participant_id\": \"p1\", \"comment\": \"A かな\"}"
+  inspect(
+    request(room, "POST", "/api/comment", body~, ctx=context(now_ms=1000)).status,
+    content="200",
+  )
+  inspect(
+    request(room, "POST", "/api/comment", body~, ctx=context(now_ms=1500)).status,
+    content="429",
+  )
+  inspect(
+    request(room, "POST", "/api/comment", body~, ctx=context(now_ms=4000)).status,
+    content="200",
+  )
+}
+
+///|
+async test "同じ接続元から参加者 ID を変えて連投しても 429 になる" {
+  let room = created_room()
+  let mut last = 0
+  for i in 0..<(@worker.MAX_COMMENTS_PER_CLIENT_PER_MINUTE + 1) {
+    let body = "{\"participant_id\": \"bot\{i}\", \"comment\": \"A かな\"}"
+    last = request(
+        room,
+        "POST",
+        "/api/comment",
+        body~,
+        ctx=context(now_ms=(i * 10).to_int64()),
+      ).status
+  }
+  inspect(last, content="429")
+  // 別の接続元は影響を受けない
+  let other = request(
+    room,
+    "POST",
+    "/api/comment",
+    body="{\"participant_id\": \"alice\", \"comment\": \"A かな\"}",
+    ctx=context(now_ms=500, client="198.51.100.7"),
+  )
+  inspect(other.status, content="200")
+}
+
+///|
+async test "判定の失敗は一般的な文言で返し、詳細は log にだけ載せる" {
+  let room = created_room()
+  let down = async fn(_request : String) -> String {
+    @async.pause()
+    raise JudgeDown
+  }
+  let reply = request(
+    room,
+    "POST",
+    "/api/comment",
+    body="{\"participant_id\": \"p\", \"comment\": \"A かな\"}",
+    judge=down,
+  )
+  inspect(reply.status, content="502")
+  assert_true(!reply.body.contains("JudgeDown"))
+  assert_true(reply.log is Some(_))
+}
+
+///|
+async test "古い形式の state（Engine の dump だけ）も復元できる。その場合、司会者操作は誰にもできない" {
+  let old_state =
+    #|{"poll": {"question": "Q", "choices": [{"key": "a", "label": "A"}]}, "entries": {}}
+  let room = @worker.room_new()
+  inspect(@worker.room_restore(room, old_state), content="")
+  inspect(request(room, "GET", "/api/poll").status, content="200")
+  inspect(
+    request(room, "GET", "/api/history", ctx=context(token="")).status,
+    content="401",
+  )
 }
