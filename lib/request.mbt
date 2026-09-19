@@ -7,9 +7,11 @@ pub const JEV_MODEL : String = "jev-latest"
 pub const VOTE_QUESTION_KEY : String = "vote"
 
 ///|
-/// choice 質問の instructions。否定形・迷い・雑談の扱いを明示すると
-/// ローカルモデル（Gemma 3 4B）でも「Bはないわ」を B の支持と誤判定しにくくなる。
-pub const VOTE_INSTRUCTIONS : String = "この発言は投票の回答です。どの選択肢を支持しているか？「〜はない」「〜は嫌」のような否定はその選択肢への支持ではない。迷っている・雑談・挨拶なら none。"
+/// choice 質問の既定の instructions。eval/ の評価セットで、本家 Jev とローカルの Gemma 3 4B の両方で選んだ。
+/// - 否定の扱いを明示しないと、Gemma は「Bはないわ」を B の支持と誤判定する
+/// - 「迷っているなら none」と書くと、本家 Jev は「たぶん B…自信ない」まで none に落とす
+/// - 迷いは挙げた選択肢で分ける、と明示すると「A もいいけど B も好き」が小数票になる
+pub const VOTE_INSTRUCTIONS : String = "この発言は投票の回答です。どの選択肢を支持しているか？複数の選択肢で迷っている発言は、挙げられた選択肢のあいだで確率を分ける。「〜はない」「〜は嫌」のような否定はその選択肢への支持ではない。どの選択肢にも触れていない雑談・挨拶は none。"
 
 ///|
 /// TypeSafe Jev 互換 API（`POST /v1/systemone`）向けのリクエスト JSON を組み立てる。

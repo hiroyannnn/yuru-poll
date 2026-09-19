@@ -95,7 +95,7 @@ fn default_none_choice() -> Choice {
   {
     key: NONE_KEY,
     label: "どれでもない",
-    description: "どれも支持していない、雑談、意味不明",
+    description: "投票と関係のない雑談・挨拶・意味不明な発言、または選択肢を否定しているだけの発言",
   }
 }
 

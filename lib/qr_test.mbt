@@ -41,7 +41,7 @@ fn assert_round_trip(text : String) -> Unit raise {
 
 ///|
 test "参加用 URL の QR は、デコードすると元の URL に戻る（LAN とホスト版）" {
-  assert_round_trip("http://192.168.1.63:8787/join")
+  assert_round_trip("http://192.168.1.10:8787/join")
   assert_round_trip("https://yuru-poll.hiroyannnn.workers.dev/r/orldfdk3/join")
   assert_round_trip("http://localhost:8787/join")
 }

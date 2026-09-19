@@ -6,6 +6,7 @@ import { DurableObject } from 'cloudflare:workers';
 const MAX_BODY_BYTES = 20_000;
 const ROOM_TTL_MS = 24 * 60 * 60 * 1000; // 最後の更新から 24 時間でルームを消す
 const ROOMS_PER_CLIENT_PER_HOUR = 10;
+const JUDGE_TIMEOUT_MS = 15_000; // 判定 API が応答しないとき、参加者を待たせ続けない
 const ROOM_ID = /^[a-z0-9]{6,32}$/;
 const PAGES = { '': '/index.html', '/join': '/join.html', '/overlay': '/overlay.html' };
 
@@ -27,13 +28,15 @@ function makeJudge(env) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${env.JEV_API_KEY ?? 'local'}` },
         body: requestJson,
+        signal: AbortSignal.timeout(JUDGE_TIMEOUT_MS),
       });
       if (!res.ok) throw new Error(`Jev HTTP ${res.status}`);
       return await res.text();
     }
     if (!env.AI) throw new Error('JEV_URL も AI バインディングも設定されていません');
     const { state, questions } = JSON.parse(requestJson);
-    return JSON.stringify(await env.AI.run('typesafe/jev', { state, questions }));
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Jev timeout')), JUDGE_TIMEOUT_MS));
+    return JSON.stringify(await Promise.race([env.AI.run('typesafe/jev', { state, questions }), timeout]));
   };
 }
 
