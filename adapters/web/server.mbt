@@ -84,11 +84,18 @@ async fn WebServer::handle(
         "url": self.join_url,
         "accept_comments": self.accept_comments,
       })
-    (Get, "/api/qr.svg") => {
-      let svg = @qr_render.to_svg(@qrc.encode(self.join_url))
-      conn.send_response(200, "OK", extra_headers=content_type("image/svg+xml"))
-      conn.write(svg)
-    }
+    (Get, "/api/qr.svg") =>
+      match @lib.qr_svg(self.join_url) {
+        Some(svg) => {
+          conn.send_response(
+            200,
+            "OK",
+            extra_headers=content_type("image/svg+xml"),
+          )
+          conn.write(svg)
+        }
+        None => send_json(conn, 500, { "error": "QR を生成できません" })
+      }
     (Post, "/api/comment") => self.handle_comment(body, conn, submit)
     (Get, "/favicon.ico") => conn.send_response(204, "No Content")
     _ => send_json(conn, 404, { "error": "not found" })

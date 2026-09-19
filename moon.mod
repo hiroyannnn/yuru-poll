@@ -27,5 +27,5 @@ description = "Loose polling: free-text comments become fractional votes via Typ
 
 import {
   "moonbitlang/async@0.22.1",
-  "bobzhang/qrc@0.1.2",
+  "naoto24kawa/moonqr@0.2.0",
 }

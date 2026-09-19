@@ -304,7 +304,7 @@ pub(open) trait Sink {
 
 ## Acknowledgments
 
-- [bobzhang/qrc](https://github.com/bobzhang/qrc)（ISC License）— 参加用 QR コードの SVG 生成に使用。OCaml の [qrc](https://github.com/dbuenzli/qrc)（Daniel Bünzli、ISC）の MoonBit 移植
+- [naoto24kawa/moonqr](https://github.com/elchika-inc/moonqr)（Apache-2.0）— 参加用 QR コードの生成に使用。テストではそのデコーダで、生成した QR が実際に読めることを検証しています。jsQR（Apache-2.0）と qrcode-generator（MIT）に由来する部分を含みます
 - [moonbitlang/async](https://github.com/moonbitlang/async)（Apache-2.0）— イベントループ、ソケット、TLS、HTTP クライアント/サーバ
 - [TypeSafe Jev](https://docs.typesafe.ai/) / [open-jev](https://github.com/daseinlabs/open-jev) — 判定 API
 

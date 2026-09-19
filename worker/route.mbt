@@ -94,11 +94,15 @@ pub async fn route(
     ("GET", "/api/tally") => ok(tally_json(room, engine))
     ("GET", "/api/join-url") => ok({ "url": join_url, "accept_comments": true })
     ("GET", "/api/qr.svg") =>
-      {
-        status: 200,
-        content_type: "image/svg+xml",
-        body: @qr_render.to_svg(@qrc.encode(join_url)),
-        state: None,
+      match @lib.qr_svg(join_url) {
+        Some(svg) =>
+          {
+            status: 200,
+            content_type: "image/svg+xml",
+            body: svg,
+            state: None,
+          }
+        None => failure(500, "QR を生成できません")
       }
     ("POST", "/api/comment") => comment(room, engine, body, judge, model)
     _ => failure(404, "not found")

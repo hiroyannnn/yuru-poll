@@ -3,8 +3,6 @@ import {
   "moonbitlang/core/json",
   "moonbitlang/core/debug",
   "moonbitlang/async/js_async",
-  "bobzhang/qrc",
-  "bobzhang/qrc/render" @qr_render,
 }
 
 import {

@@ -3,6 +3,7 @@ package "hiroyannnn/yuru-poll/lib"
 
 import {
   "moonbitlang/core/debug",
+  "naoto24kawa/moonqr/encode",
 }
 
 // Values
@@ -41,6 +42,10 @@ pub fn parse_stdin_line(String, at~ : Int64, anonymous_id? : String) -> Comment?
 pub fn participant_id(String, String) -> String
 
 pub fn pong_line(String) -> String
+
+pub fn qr_matrix(String) -> @encode.Matrix?
+
+pub fn qr_svg(String) -> String?
 
 pub fn render_last_comment(Update) -> String
 
