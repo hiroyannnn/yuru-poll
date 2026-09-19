@@ -15,7 +15,11 @@ pub fn Engine::dump(self : Engine) -> Json {
   for participant_id, judgement in self.tally.latest_by_participant {
     entries[participant_id] = ToJson::to_json(judgement)
   }
-  { "poll": ToJson::to_json(self.poll), "entries": Json::object(entries) }
+  {
+    "poll": ToJson::to_json(self.poll),
+    "entries": Json::object(entries),
+    "history": ToJson::to_json(self.recent),
+  }
 }
 
 ///|
@@ -37,5 +41,40 @@ pub fn Engine::restore(json : Json) -> Engine raise PersistError {
       }
     Some(_) => raise TypeMismatch("entries")
   }
+  // 履歴は後から足した項目なので、無い state も受け付ける
+  match root.get("history") {
+    None | Some(Null) => ()
+    Some(Array(items)) =>
+      for item in items {
+        guard item
+          is Object(
+            { "comment": comment_json, "judgement": judgement_json, .. }
+          ) else {
+          raise TypeMismatch("history")
+        }
+        let comment = comment_from_json(comment_json)
+        let judgement = Judgement::from_json(judgement_json, path="") catch {
+          err => raise BadEntry(comment.participant_id, err)
+        }
+        engine.remember({ comment, judgement, })
+      }
+    Some(_) => raise TypeMismatch("history")
+  }
   engine
+}
+
+///|
+fn comment_from_json(json : Json) -> Comment raise PersistError {
+  guard json
+    is Object(
+      { "participant_id": String(participant_id), "text": String(text), .. }
+    ) else {
+    raise TypeMismatch("history.comment")
+  }
+  // at は Int64 なので JSON では文字列になる。読めなければ 0
+  let at : Int64 = match json {
+    Object({ "at": String(s), .. }) => @string.parse_int64(s) catch { _ => 0 }
+    _ => 0
+  }
+  { participant_id, text, at, }
 }

@@ -1,5 +1,6 @@
 import {
   "moonbitlang/core/json",
+  "moonbitlang/core/string",
   "naoto24kawa/moonqr/encode" @moonqr,
 }
 

@@ -32,7 +32,7 @@ pub fn build_request(
     "questions": {
       "vote": {
         "type": "choice",
-        "instructions": VOTE_INSTRUCTIONS,
+        "instructions": poll.instructions.unwrap_or(VOTE_INSTRUCTIONS),
         "criteria": Json::object(criteria),
       },
     },

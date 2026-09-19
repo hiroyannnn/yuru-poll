@@ -17,6 +17,8 @@ pub(all) struct Choice {
 pub(all) struct Poll {
   question : String
   choices : Array[Choice]
+  /// 判定の指示文。None なら既定（VOTE_INSTRUCTIONS）を使う
+  instructions : String?
 } derive(Debug, Eq, ToJson)
 
 ///|
@@ -61,7 +63,19 @@ pub fn Poll::from_json(json : Json) -> Poll raise PollError {
   if !choices.iter().any(c => c.key == NONE_KEY) {
     choices.push(default_none_choice())
   }
-  { question, choices, }
+  let instructions = match obj.get("instructions") {
+    None | Some(Null) => None
+    Some(String(s)) => {
+      let trimmed = s.trim(chars=" \t\r\n").to_owned()
+      if trimmed.is_empty() {
+        None
+      } else {
+        Some(trimmed)
+      }
+    }
+    Some(_) => raise TypeMismatch("instructions")
+  }
+  { question, choices, instructions, }
 }
 
 ///|

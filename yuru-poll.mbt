@@ -15,6 +15,8 @@ pub using @lib {
   type LiveChatPage,
   type YouTubeError,
   type PersistError,
+  type HistoryEntry,
+  type RateLimiter,
   trait Source,
   trait Sink,
   build_request,
@@ -27,4 +29,6 @@ pub using @lib {
   parse_stdin_line,
   render_snapshot,
   render_last_comment,
+  qr_svg,
+  qr_matrix,
 }

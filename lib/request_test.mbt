@@ -77,3 +77,42 @@ test "build_request は model を差し替えられる（Vercel AI Gateway で�
   }
   inspect(model, content="typesafe-ai/jev")
 }
+
+///|
+test "poll に instructions があれば、既定の指示文の代わりに使う" {
+  let text =
+    #|{"question": "Q", "instructions": "この発言はどれを推しているか？", "choices": [{"key": "a", "label": "A"}]}
+  let poll = @lib.Poll::parse(text)
+  debug_inspect(
+    poll.instructions,
+    content="Some(\"この発言はどれを推しているか？\")",
+  )
+  guard @lib.build_request(poll, "x")
+    is Object(
+      {
+        "questions": Object(
+          { "vote": Object({ "instructions": String(sent), .. }), .. }
+        ),
+        ..
+      }
+    ) else {
+    fail("instructions があるはず")
+  }
+  inspect(sent, content="この発言はどれを推しているか？")
+  let default_poll = @lib.Poll::parse(request_poll_json)
+  debug_inspect(default_poll.instructions, content="None")
+}
+
+///|
+test "instructions が文字列でなければ TypeMismatch、空文字は既定に戻す" {
+  let bad =
+    #|{"question": "Q", "instructions": 1, "choices": [{"key": "a", "label": "A"}]}
+  try @lib.Poll::parse(bad) catch {
+    e => debug_inspect(e, content="TypeMismatch(\"instructions\")")
+  } noraise {
+    _ => fail("失敗するはず")
+  }
+  let empty =
+    #|{"question": "Q", "instructions": "  ", "choices": [{"key": "a", "label": "A"}]}
+  debug_inspect(@lib.Poll::parse(empty).instructions, content="None")
+}
