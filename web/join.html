@@ -39,6 +39,8 @@
   <div id="result"></div>
 </main>
 <script>
+  // API の基点。native 版では '/api'、ホスト版では '/r/<ルーム>/api' になる。
+  const API = location.pathname.replace(/\/(join|overlay)?\/?$/, '') + '/api';
   const KEY = 'yuru-poll-participant-id';
   let participantId = null;
   try { participantId = localStorage.getItem(KEY); } catch (e) {}
@@ -49,7 +51,7 @@
   let poll = null;
 
   async function loadPoll() {
-    const res = await fetch('/api/poll');
+    const res = await fetch(API + '/poll');
     poll = await res.json();
     document.getElementById('question').textContent = poll.question;
     const labels = poll.choices.filter((c) => c.key !== 'none').map((c) => c.label).join(' / ');
@@ -65,7 +67,7 @@
     button.disabled = true;
     document.getElementById('error').textContent = '';
     try {
-      const res = await fetch('/api/comment', {
+      const res = await fetch(API + '/comment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ participant_id: participantId, comment: text }),

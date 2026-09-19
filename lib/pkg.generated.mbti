@@ -18,7 +18,7 @@ pub const VOTE_INSTRUCTIONS : String = "この発言は投票の回答です。�
 
 pub const VOTE_QUESTION_KEY : String = "vote"
 
-pub fn build_request(Poll, String) -> Json
+pub fn build_request(Poll, String, model? : String) -> Json
 
 pub fn display_width(String) -> Int
 
@@ -51,6 +51,12 @@ pub fn twitch_login_lines(String, String) -> Array[String]
 pub fn videos_list_url(String, String) -> String
 
 // Errors
+pub suberror PersistError {
+  TypeMismatch(String)
+  BadPoll(PollError)
+  BadEntry(String, ResponseError)
+} derive(Eq, @debug.Debug)
+
 pub suberror PollError {
   InvalidJson(String)
   MissingField(String)
@@ -91,7 +97,9 @@ pub struct Engine {
 }
 pub fn Engine::add_sink(Self, &Sink) -> Unit
 pub fn Engine::apply(Self, Comment, Judgement) -> Update
+pub fn Engine::dump(Self) -> Json
 pub fn Engine::new(Poll) -> Self
+pub fn Engine::restore(Json) -> Self raise PersistError
 pub fn Engine::snapshot(Self) -> Snapshot
 
 pub enum IrcMessage {
@@ -105,6 +113,7 @@ pub(all) struct Judgement {
   probabilities : Map[String, Double]
   confidence : Double
 } derive(Eq, ToJson, @debug.Debug)
+pub fn Judgement::from_json(Json, path~ : String) -> Self raise ResponseError
 pub fn Judgement::probability(Self, String) -> Double
 
 pub(all) struct LiveChatPage {

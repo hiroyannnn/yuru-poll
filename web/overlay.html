@@ -23,11 +23,13 @@
   <div id="choices"></div>
   <div class="stats" id="stats"></div>
 <script>
+  // API の基点。native 版では '/api'、ホスト版では '/r/<ルーム>/api' になる。
+  const API = location.pathname.replace(/\/(join|overlay)?\/?$/, '') + '/api';
   let poll = null;
   const fmt = (v) => (Math.round(v * 10) / 10).toFixed(1);
 
   async function loadPoll() {
-    poll = await (await fetch('/api/poll')).json();
+    poll = await (await fetch(API + '/poll')).json();
     document.getElementById('question').textContent = poll.question;
     const box = document.getElementById('choices');
     box.innerHTML = '';
@@ -43,7 +45,7 @@
 
   async function refresh() {
     try {
-      const s = (await (await fetch('/api/tally')).json()).snapshot;
+      const s = (await (await fetch(API + '/tally')).json()).snapshot;
       let max = 0;
       for (const c of poll.choices) if (c.key !== 'none') max = Math.max(max, s.totals[c.key] || 0);
       for (const c of poll.choices) {

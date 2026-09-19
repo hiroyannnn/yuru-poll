@@ -62,3 +62,18 @@ test "build_request の JSON は文字列化して再パースしても同じ" {
   let text = request.stringify()
   assert_eq(@json.parse(text), request)
 }
+
+///|
+test "build_request は model を差し替えられる（Vercel AI Gateway では typesafe-ai/jev）" {
+  let poll = @lib.Poll::parse(request_poll_json)
+  let default_request = @lib.build_request(poll, "x")
+  guard default_request is Object({ "model": String(default_model), .. }) else {
+    fail("model があるはず")
+  }
+  inspect(default_model, content="jev-latest")
+  let request = @lib.build_request(poll, "x", model="typesafe-ai/jev")
+  guard request is Object({ "model": String(model), .. }) else {
+    fail("model があるはず")
+  }
+  inspect(model, content="typesafe-ai/jev")
+}

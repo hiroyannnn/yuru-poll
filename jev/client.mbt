@@ -21,14 +21,17 @@ pub suberror JevError {
 pub struct JevClient {
   base_url : String
   api_key : String
+  /// リクエストに載せるモデル名（JEV_MODEL。Vercel AI Gateway では `typesafe-ai/jev`）
+  model : String
 }
 
 ///|
 pub fn JevClient::new(
   base_url? : String = DEFAULT_URL,
   api_key? : String = DEFAULT_API_KEY,
+  model? : String = @lib.JEV_MODEL,
 ) -> JevClient {
-  { base_url: base_url.trim_end(chars="/").to_owned(), api_key, }
+  { base_url: base_url.trim_end(chars="/").to_owned(), api_key, model, }
 }
 
 ///|
@@ -37,6 +40,7 @@ pub fn JevClient::from_env() -> JevClient {
   JevClient::new(
     base_url=@env.get_env_var("JEV_URL").unwrap_or(DEFAULT_URL),
     api_key=@env.get_env_var("JEV_API_KEY").unwrap_or(DEFAULT_API_KEY),
+    model=@env.get_env_var("JEV_MODEL").unwrap_or(@lib.JEV_MODEL),
   )
 }
 
@@ -51,7 +55,7 @@ pub async fn JevClient::judge(
     (@http.CaseInsensitiveString("Authorization"), "Bearer \{self.api_key}"),
     (@http.CaseInsensitiveString("Content-Type"), "application/json"),
   ])
-  let body = @lib.build_request(poll, comment.text).stringify()
+  let body = @lib.build_request(poll, comment.text, model=self.model).stringify()
   let (response, data) = @http.post(
     "\{self.base_url}/v1/systemone",
     body,

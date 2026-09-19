@@ -6,7 +6,7 @@ import {
 }
 
 // Values
-pub fn build_request(@lib.Poll, String) -> Json
+pub fn build_request(@lib.Poll, String, model? : String) -> Json
 
 pub fn parse_irc_line(String) -> @lib.IrcMessage
 
@@ -42,6 +42,8 @@ pub using @lib {type IrcMessage}
 pub using @lib {type Judgement}
 
 pub using @lib {type LiveChatPage}
+
+pub using @lib {type PersistError}
 
 pub using @lib {type Poll}
 

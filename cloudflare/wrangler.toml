@@ -1,0 +1,43 @@
+name = "yuru-poll"
+main = "src/index.mjs"
+compatibility_date = "2026-09-01"
+
+# デプロイや dev の前に MoonBit の worker パッケージを JS にビルドする
+[build]
+command = "cd .. && moon build --target js --release"
+watch_dir = ["../worker", "../lib"]
+
+# 静的ページ（native 版と同じ web/ を使う）。ルーティングは Worker が先に行う
+[assets]
+directory = "../web"
+binding = "ASSETS"
+run_worker_first = true
+html_handling = "none"
+
+# 1 ルーム = 1 Durable Object
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "RoomDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RoomDO"]
+
+# 判定は Workers AI の Jev（typesafe/jev）。利用には Cloudflare へのログインが必要
+[ai]
+binding = "AI"
+
+# 判定先を TypeSafe 互換の HTTP API に切り替える設定（設定すると AI バインディングより優先される）
+#   JEV_URL      API の基点。末尾に /v1/systemone を付けて呼ぶ
+#   JEV_MODEL    リクエストに載せるモデル名（省略時は jev-latest）
+#   JEV_API_KEY  Bearer トークン。値は `npx wrangler secret put JEV_API_KEY` で入れ、ここには書かない
+#
+# ローカルの open-jev（cloudflare/.dev.vars に書く）:
+#   JEV_URL=http://127.0.0.1:8000
+#   JEV_API_KEY=local
+#
+# 本番の判定先: Vercel AI Gateway の Jev（キーは AI Gateway の API キーをシークレットで入れる）。
+# Cloudflare 側の Jev（AI バインディング）に戻すときは、この [vars] をコメントアウトする。
+[vars]
+JEV_URL = "https://ai-gateway.vercel.sh/typesafe"
+JEV_MODEL = "typesafe-ai/jev"

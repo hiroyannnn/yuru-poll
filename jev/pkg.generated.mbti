@@ -22,11 +22,12 @@ pub suberror JevError {
 pub struct JevClient {
   base_url : String
   api_key : String
+  model : String
 }
 pub fn JevClient::from_env() -> Self
 pub async fn JevClient::judge(Self, @lib.Poll, @lib.Comment) -> @lib.Judgement
 pub fn JevClient::judge_fn(Self) -> async (@lib.Poll, @lib.Comment) -> @lib.Judgement
-pub fn JevClient::new(base_url? : String, api_key? : String) -> Self
+pub fn JevClient::new(base_url? : String, api_key? : String, model? : String) -> Self
 
 // Type aliases
 

@@ -14,6 +14,7 @@ pub using @lib {
   type IrcMessage,
   type LiveChatPage,
   type YouTubeError,
+  type PersistError,
   trait Source,
   trait Sink,
   build_request,
