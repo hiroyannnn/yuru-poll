@@ -6,7 +6,7 @@ import {
 }
 
 // Values
-pub fn build_request(@lib.Poll, String) -> Json
+pub fn build_request(@lib.Poll, String, model? : String) -> Json
 
 pub fn parse_irc_line(String) -> @lib.IrcMessage
 

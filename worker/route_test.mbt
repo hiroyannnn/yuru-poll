@@ -271,3 +271,32 @@ async test "Reply::to_json_text は JS グルーが読む形になる" {
   inspect(status, content="200")
   inspect(ct, content="application/json; charset=utf-8")
 }
+
+///|
+async test "route は model を指定でき、判定リクエストに載る（空なら既定値）" {
+  let room = created_room()
+  let seen : Array[String] = []
+  let body = "{\"participant_id\": \"p1\", \"comment\": \"A かな\"}"
+  @worker.route(
+    room,
+    "POST",
+    "/api/comment",
+    body,
+    fake_judge(seen),
+    join_url="",
+    model="typesafe-ai/jev",
+  )
+  |> ignore
+  @worker.route(
+    room,
+    "POST",
+    "/api/comment",
+    body,
+    fake_judge(seen),
+    join_url="",
+    model="",
+  )
+  |> ignore
+  assert_true(seen[0].contains("\"model\":\"typesafe-ai/jev\""))
+  assert_true(seen[1].contains("\"model\":\"jev-latest\""))
+}

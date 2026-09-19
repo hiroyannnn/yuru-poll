@@ -16,14 +16,19 @@ pub const VOTE_INSTRUCTIONS : String = "この発言は投票の回答です。�
 ///
 /// - `state`: 質問文と発言
 /// - `questions.vote`: 選択肢を criteria にした choice 質問 1 個
-pub fn build_request(poll : Poll, comment : String) -> Json {
+/// - `model`: 既定は `jev-latest`。Vercel AI Gateway 経由なら `typesafe-ai/jev` を渡す
+pub fn build_request(
+  poll : Poll,
+  comment : String,
+  model? : String = JEV_MODEL,
+) -> Json {
   let criteria : Map[String, Json] = Map([])
   for choice in poll.choices {
     criteria[choice.key] = Json::string(criterion_text(choice))
   }
   {
     "state": { "question": poll.question, "comment": comment },
-    "model": JEV_MODEL,
+    "model": model,
     "questions": {
       "vote": {
         "type": "choice",

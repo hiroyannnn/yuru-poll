@@ -47,7 +47,16 @@ moon build --target native
 ```bash
 export JEV_URL=http://127.0.0.1:8000   # 既定値
 export JEV_API_KEY=local               # 既定値（Authorization: Bearer <key>）
+export JEV_MODEL=jev-latest            # 既定値。リクエストに載せるモデル名
 curl -s $JEV_URL/health
+```
+
+Vercel AI Gateway の Jev を使う場合は、TypeSafe 互換のエンドポイントに向けます（キーは AI Gateway の API キー）。
+
+```bash
+export JEV_URL=https://ai-gateway.vercel.sh/typesafe
+export JEV_MODEL=typesafe-ai/jev
+export JEV_API_KEY=<AI Gateway の API キー>
 ```
 
 ## 使い方
@@ -179,7 +188,8 @@ Factorio       █████████████████████�
 | `/r/<room>/overlay` | OBS ブラウザソース用 |
 | `/r/<room>/api/...` | native 版と同じ API（`poll` `tally` `comment` `join-url` `qr.svg`） |
 
-- **判定**: Workers AI に載っている Jev（`typesafe/jev`）を `env.AI.run` で呼びます。リクエストとレスポンスの形は TypeSafe の API と同じなので、`lib` の組み立てと解釈をそのまま使います。環境変数 `JEV_URL` を設定すると、そちらの HTTP API（ローカルの open-jev など）が優先されます
+- **判定**: 既定では Workers AI に載っている Jev（`typesafe/jev`）を `env.AI.run` で呼びます。リクエストとレスポンスの形は TypeSafe の API と同じなので、`lib` の組み立てと解釈をそのまま使います。ただし Cloudflare 上の Jev は第三者モデル扱いで、Workers AI の無料枠ではなく AI Gateway の前払いクレジット（Unified Billing）が必要です。クレジットが無いと `Insufficient AI Gateway credits` で失敗します
+- **判定先の切り替え**: `JEV_URL` を設定すると、TypeSafe 互換の HTTP API が優先されます。ローカルの open-jev、TypeSafe 公式、Vercel AI Gateway（`https://ai-gateway.vercel.sh/typesafe`、モデル名は `JEV_MODEL=typesafe-ai/jev`）が使えます。キーは `npx wrangler secret put JEV_API_KEY` で入れます
 - **状態**: 集計は Durable Object のメモリにあり、変更のたびに `Engine::dump` の JSON をストレージへ保存します。休止から戻るときに `Engine::restore` で復元します（「最新の発言」の表示だけは復元されません）
 - **外部ライブラリ**: JS との出入口は公式の `moonbitlang/async/js_async`（Promise との橋渡し）だけを使い、Workers 用のバインディングには依存していません
 - **注意**: MoonBit のコアはモジュールの初期化時にハッシュ用の乱数シードを作ります。Workers はグローバルスコープでの乱数生成を禁止しているため、グルーは MoonBit のモジュールをリクエストの中で遅延 import しています
@@ -200,7 +210,7 @@ cd cloudflare && npx wrangler dev --local
 
 ### デプロイ
 
-Cloudflare へのログインが必要です。`.dev.vars` はローカル専用なので、本番では Workers AI の Jev が使われます。
+Cloudflare へのログインが必要です。`.dev.vars` はローカル専用なので、本番の判定先は `wrangler.toml` の `[vars]` とシークレットで決まります（未設定なら Workers AI の Jev）。
 
 ```bash
 cd cloudflare && npx wrangler login

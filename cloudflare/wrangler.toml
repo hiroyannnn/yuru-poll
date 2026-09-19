@@ -27,6 +27,16 @@ new_sqlite_classes = ["RoomDO"]
 [ai]
 binding = "AI"
 
-# ローカルで open-jev を相手に動かすときは cloudflare/.dev.vars に次を書く（AI より優先される）
+# 判定先を TypeSafe 互換の HTTP API に切り替える設定（設定すると AI バインディングより優先される）
+#   JEV_URL      API の基点。末尾に /v1/systemone を付けて呼ぶ
+#   JEV_MODEL    リクエストに載せるモデル名（省略時は jev-latest）
+#   JEV_API_KEY  Bearer トークン。値は `npx wrangler secret put JEV_API_KEY` で入れ、ここには書かない
+#
+# ローカルの open-jev（cloudflare/.dev.vars に書く）:
 #   JEV_URL=http://127.0.0.1:8000
 #   JEV_API_KEY=local
+#
+# Vercel AI Gateway の Jev（下の [vars] のコメントを外す。キーは AI Gateway の API キー）:
+# [vars]
+# JEV_URL = "https://ai-gateway.vercel.sh/typesafe"
+# JEV_MODEL = "typesafe-ai/jev"

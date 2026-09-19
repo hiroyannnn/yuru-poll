@@ -20,6 +20,7 @@ pub fn room_handle(
   path : String,
   body : String,
   join_url : String,
+  model : String,
   judge : JsJudge,
 ) -> @js_async.Promise[String] {
   @js_async.Promise::from_async(() => {
@@ -30,6 +31,7 @@ pub fn room_handle(
       body,
       request => judge.call(request).wait(),
       join_url~,
+      model~,
     ) catch {
       err => failure(500, "内部エラー: \{err}")
     }

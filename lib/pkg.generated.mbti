@@ -18,7 +18,7 @@ pub const VOTE_INSTRUCTIONS : String = "この発言は投票の回答です。�
 
 pub const VOTE_QUESTION_KEY : String = "vote"
 
-pub fn build_request(Poll, String) -> Json
+pub fn build_request(Poll, String, model? : String) -> Json
 
 pub fn display_width(String) -> Int
 

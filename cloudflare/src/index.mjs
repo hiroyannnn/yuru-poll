@@ -16,7 +16,8 @@ async function moonbit() {
 }
 
 // 判定関数。リクエスト JSON（文字列）を受け取り、レスポンス JSON（文字列）を返す。
-// JEV_URL があれば TypeSafe 互換の HTTP API（ローカルの open-jev など）、無ければ Workers AI の Jev を使う。
+// JEV_URL があれば TypeSafe 互換の HTTP API を使う（ローカルの open-jev、TypeSafe 公式、
+// Vercel AI Gateway の https://ai-gateway.vercel.sh/typesafe など）。無ければ Workers AI の Jev を使う。
 function makeJudge(env) {
   return async (requestJson) => {
     if (env.JEV_URL) {
@@ -77,7 +78,15 @@ export class RoomDO extends DurableObject {
     }
     const joinUrl = request.headers.get('x-yuru-join-url') ?? '';
     const reply = JSON.parse(
-      await this.mbt.room_handle(this.room, request.method, url.pathname, body, joinUrl, this.judge),
+      await this.mbt.room_handle(
+        this.room,
+        request.method,
+        url.pathname,
+        body,
+        joinUrl,
+        this.env.JEV_MODEL ?? '', // 空なら MoonBit 側の既定値（jev-latest）
+        this.judge,
+      ),
     );
     if (reply.state) await this.ctx.storage.put('state', reply.state);
     return new Response(reply.body, {

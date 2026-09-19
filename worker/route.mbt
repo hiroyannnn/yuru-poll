@@ -81,6 +81,7 @@ pub async fn route(
   body : String,
   judge : async (String) -> String,
   join_url~ : String,
+  model? : String = "",
 ) -> Reply {
   if meth == "POST" && path == "/api/room" {
     return create_room(room, body)
@@ -99,7 +100,7 @@ pub async fn route(
         body: @qr_render.to_svg(@qrc.encode(join_url)),
         state: None,
       }
-    ("POST", "/api/comment") => comment(room, engine, body, judge)
+    ("POST", "/api/comment") => comment(room, engine, body, judge, model)
     _ => failure(404, "not found")
   }
 }
@@ -140,6 +141,7 @@ async fn comment(
   engine : @lib.Engine,
   body : String,
   judge : async (String) -> String,
+  model : String,
 ) -> Reply {
   let json = @json.parse(body) catch {
     _ => return failure(400, "JSON が不正です")
@@ -160,7 +162,13 @@ async fn comment(
       "発言が長すぎます（\{MAX_COMMENT_CHARS} 文字まで）",
     )
   }
-  let request = @lib.build_request(engine.poll, text).stringify()
+  // 空ならコアの既定値（jev-latest）を使う
+  let request_json = if model.is_empty() {
+    @lib.build_request(engine.poll, text)
+  } else {
+    @lib.build_request(engine.poll, text, model~)
+  }
+  let request = request_json.stringify()
   let response = judge(request) catch {
     err =>
       return failure(502, "判定サーバに接続できません: \{err}")
