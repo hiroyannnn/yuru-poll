@@ -4,6 +4,10 @@
 
 [日本語の README はこちら](README.ja.md)
 
+![Demo: the host screen on the left, a participant's phone on the right. A remark becomes a probability distribution and is counted as fractional votes.](docs/demo.gif)
+
+Recorded against the hosted version on Cloudflare Workers with the real Jev model; only the captions were overlaid while recording. "I like squid, but factories are nice too" is read as Splatoon 55% / Factorio 29% / none 16%, and when the participant changes their mind the vote moves.
+
 *yuru* (ゆるい) is Japanese for loose, relaxed.
 
 - **Loose answers**: no buttons, no commands. Chat as usual.

@@ -22,7 +22,7 @@ async function moonbit() {
 // JEV_URL があれば TypeSafe 互換の HTTP API を使う（ローカルの open-jev、TypeSafe 公式、
 // Vercel AI Gateway の https://ai-gateway.vercel.sh/typesafe など）。無ければ Workers AI の Jev を使う。
 function makeJudge(env) {
-  return async (requestJson) => {
+  const once = async (requestJson) => {
     if (env.JEV_URL) {
       const res = await fetch(`${env.JEV_URL.replace(/\/$/, '')}/v1/systemone`, {
         method: 'POST',
@@ -30,13 +30,28 @@ function makeJudge(env) {
         body: requestJson,
         signal: AbortSignal.timeout(JUDGE_TIMEOUT_MS),
       });
-      if (!res.ok) throw new Error(`Jev HTTP ${res.status}`);
+      if (!res.ok) {
+        const error = new Error(`Jev HTTP ${res.status}`);
+        error.retryable = res.status >= 500 || res.status === 429;
+        throw error;
+      }
       return await res.text();
     }
     if (!env.AI) throw new Error('JEV_URL も AI バインディングも設定されていません');
     const { state, questions } = JSON.parse(requestJson);
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Jev timeout')), JUDGE_TIMEOUT_MS));
     return JSON.stringify(await Promise.race([env.AI.run('typesafe/jev', { state, questions }), timeout]));
+  };
+  // 上流の一時的な失敗（5xx、429、タイムアウト）は 1 回だけやり直す。認証エラーなどはやり直さない
+  return async (requestJson) => {
+    try {
+      return await once(requestJson);
+    } catch (error) {
+      if (error.retryable === false) throw error; // HTTP 4xx。タイムアウトや通信エラーは retryable が未設定なのでやり直す
+      console.error(`judge retry: ${error.message}`);
+      await new Promise((r) => setTimeout(r, 300));
+      return await once(requestJson);
+    }
   };
 }
 
