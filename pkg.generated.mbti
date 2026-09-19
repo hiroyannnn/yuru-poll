@@ -43,6 +43,8 @@ pub using @lib {type Judgement}
 
 pub using @lib {type LiveChatPage}
 
+pub using @lib {type PersistError}
+
 pub using @lib {type Poll}
 
 pub using @lib {type PollError}

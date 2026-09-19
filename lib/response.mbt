@@ -52,27 +52,47 @@ pub fn parse_response(json : Json) -> Judgement raise ResponseError {
     Some(String("choice")) => ()
     Some(_) => raise TypeMismatch("answers.vote.type")
   }
+  Judgement::from_json(Json::object(vote), path="answers.vote")
+}
+
+///|
+/// `{choice, probabilities, confidence}` の形の JSON から判定結果を読む。
+/// `path` はエラーに載せる位置の接頭辞（例: `answers.vote`）。
+pub fn Judgement::from_json(
+  json : Json,
+  path~ : String,
+) -> Judgement raise ResponseError {
+  let at = (field : String) => {
+    if path.is_empty() {
+      field
+    } else {
+      "\{path}.\{field}"
+    }
+  }
+  guard json is Object(vote) else {
+    raise TypeMismatch(if path.is_empty() { "judgement" } else { path })
+  }
   let choice = match vote.get("choice") {
-    None => raise MissingField("answers.vote.choice")
+    None => raise MissingField(at("choice"))
     Some(String(s)) => s
-    Some(_) => raise TypeMismatch("answers.vote.choice")
+    Some(_) => raise TypeMismatch(at("choice"))
   }
   let raw_probabilities = match vote.get("probabilities") {
-    None => raise MissingField("answers.vote.probabilities")
+    None => raise MissingField(at("probabilities"))
     Some(Object(p)) => p
-    Some(_) => raise TypeMismatch("answers.vote.probabilities")
+    Some(_) => raise TypeMismatch(at("probabilities"))
   }
   let probabilities : Map[String, Double] = Map([])
   for key, value in raw_probabilities {
     match value {
       Number(n, ..) => probabilities[key] = n
-      _ => raise TypeMismatch("answers.vote.probabilities.\{key}")
+      _ => raise TypeMismatch(at("probabilities.\{key}"))
     }
   }
   let confidence = match vote.get("confidence") {
-    None => raise MissingField("answers.vote.confidence")
+    None => raise MissingField(at("confidence"))
     Some(Number(n, ..)) => n
-    Some(_) => raise TypeMismatch("answers.vote.confidence")
+    Some(_) => raise TypeMismatch(at("confidence"))
   }
   { choice, probabilities, confidence, }
 }
