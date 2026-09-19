@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hiroyannnn/yuru-poll/jev"
+
+import {
+  "hiroyannnn/yuru-poll/lib",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub const DEFAULT_API_KEY : String = "local"
+
+pub const DEFAULT_URL : String = "http://127.0.0.1:8000"
+
+// Errors
+pub suberror JevError {
+  HttpStatus(Int, String)
+  InvalidJson(String)
+  BadResponse(@lib.ResponseError)
+} derive(@debug.Debug)
+
+// Types and methods
+pub struct JevClient {
+  base_url : String
+  api_key : String
+}
+pub fn JevClient::from_env() -> Self
+pub async fn JevClient::judge(Self, @lib.Poll, @lib.Comment) -> @lib.Judgement
+pub fn JevClient::judge_fn(Self) -> async (@lib.Poll, @lib.Comment) -> @lib.Judgement
+pub fn JevClient::new(base_url? : String, api_key? : String) -> Self
+
+// Type aliases
+
+// Traits

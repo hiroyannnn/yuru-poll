@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hiroyannnn/yuru-poll/runtime"
+
+import {
+  "hiroyannnn/yuru-poll/lib",
+}
+
+// Values
+pub async fn log(String) -> Unit
+
+pub async fn run(@lib.Engine, async (@lib.Poll, @lib.Comment) -> @lib.Judgement, Array[&@lib.Source]) -> Unit
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

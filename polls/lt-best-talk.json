@@ -1,0 +1,25 @@
+{
+  "question": "このトークで一番刺さった話は？",
+  "choices": [
+    {
+      "key": "tdd",
+      "label": "TDD の話",
+      "description": "テスト駆動開発、テストファースト、Red-Green-Refactor、テストを先に書く話。「テストの話が良かった」「TDD やってみたい」「Red から始めるのが腑に落ちた」"
+    },
+    {
+      "key": "moonbit",
+      "label": "MoonBit の話",
+      "description": "MoonBit という言語、型、パターンマッチ、async、Wasm、ツールチェーンの話。「言語が面白そう」「moon コマンド便利」「パターンマッチが綺麗」"
+    },
+    {
+      "key": "jev",
+      "label": "Jev（判定 AI）の話",
+      "description": "Jev、TypeSafe、確率分布、LLM で自由発言を判定する話、小数票。「確率で数えるのが面白い」「AI の判定が意外と当たる」「ゆるアンケートのアイデア」"
+    },
+    {
+      "key": "streaming",
+      "label": "配信連携の話",
+      "description": "YouTube や Twitch のチャット連携、OBS のオーバーレイ、配信中にリアルタイムで集計する話。「配信で使いたい」「OBS に出せるのが良い」「チャット連携すごい」"
+    }
+  ]
+}

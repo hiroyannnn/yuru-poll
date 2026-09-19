@@ -1,0 +1,38 @@
+yuru-poll
+Copyright 2026 hiroyannnn
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product depends on the following third-party MoonBit packages.
+Their license texts are reproduced below as required by their terms.
+
+--------------------------------------------------------------------------------
+bobzhang/qrc (QR code encoder, used for the participant QR code)
+https://github.com/bobzhang/qrc
+Declared license: ISC (per moon.mod and README of the package; note that the
+LICENSE file bundled in the published package is the Apache-2.0 template).
+The package is a MoonBit port of the OCaml "qrc" library by Daniel Bünzli,
+which is also distributed under the ISC License.
+
+ISC License
+
+Copyright (c) the bobzhang/qrc authors
+Copyright (c) 2020 The qrc programmers (Daniel Bünzli)
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+--------------------------------------------------------------------------------
+moonbitlang/async (event loop, sockets, TLS, HTTP client/server)
+https://github.com/moonbitlang/async
+License: Apache License, Version 2.0
+Copyright 2025 International Digital Economy Academy

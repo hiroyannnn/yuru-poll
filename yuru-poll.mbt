@@ -1,3 +1,29 @@
-// Main package file for your library code.
-// Put public APIs and shared helpers here.
-// Keep blocks small and focused for easy refactors.
+///|
+/// コア（lib）の公開 API をルートパッケージから直接使えるように再エクスポートする。
+pub using @lib {
+  type Poll,
+  type Choice,
+  type PollError,
+  type Judgement,
+  type ResponseError,
+  type Tally,
+  type Snapshot,
+  type Comment,
+  type Update,
+  type Engine,
+  type IrcMessage,
+  type LiveChatPage,
+  type YouTubeError,
+  trait Source,
+  trait Sink,
+  build_request,
+  parse_response,
+  parse_response_text,
+  participant_id,
+  parse_irc_line,
+  parse_live_chat_id,
+  parse_live_chat_page,
+  parse_stdin_line,
+  render_snapshot,
+  render_last_comment,
+}

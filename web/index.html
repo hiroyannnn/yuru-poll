@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ゆるアンケート 司会者画面</title>
+<style>
+  :root { --bg: #14161c; --fg: #f4f4f6; --muted: #9aa0ad; --bar: #4f8cff; --bar-bg: #262a35; --accent: #ffb454; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; display: grid; grid-template-columns: 1fr 260px; gap: 24px; }
+  @media (max-width: 760px) { main { grid-template-columns: 1fr; } }
+  h1 { font-size: 2rem; margin: 0 0 16px; line-height: 1.3; }
+  .choice { margin: 12px 0; }
+  .choice .head { display: flex; justify-content: space-between; font-size: 1.25rem; margin-bottom: 4px; }
+  .choice .votes { font-variant-numeric: tabular-nums; color: var(--accent); }
+  .track { height: 28px; background: var(--bar-bg); border-radius: 6px; overflow: hidden; }
+  .fill { height: 100%; width: 0; background: var(--bar); transition: width .4s ease; }
+  .stats { color: var(--muted); margin-top: 16px; font-size: 1.05rem; }
+  .last { margin-top: 20px; padding: 12px; background: #1d2029; border-radius: 8px; color: var(--muted); }
+  .last b { color: var(--fg); }
+  aside { text-align: center; }
+  aside img { width: 100%; max-width: 240px; background: #fff; padding: 8px; border-radius: 8px; }
+  aside .url { word-break: break-all; font-size: .95rem; color: var(--muted); margin-top: 8px; }
+  aside .off { color: var(--accent); font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+  <section>
+    <h1 id="question">読み込み中…</h1>
+    <div id="choices"></div>
+    <div class="stats" id="stats"></div>
+    <div class="last" id="last">まだ発言はありません</div>
+  </section>
+  <aside>
+    <img id="qr" src="/api/qr.svg" alt="参加用 QR コード">
+    <div class="url" id="join-url"></div>
+    <div class="off" id="join-off"></div>
+  </aside>
+</main>
+<script>
+  const state = { poll: null };
+  const fmt = (v) => (Math.round(v * 10) / 10).toFixed(1);
+
+  async function loadPoll() {
+    const res = await fetch('/api/poll');
+    state.poll = await res.json();
+    document.getElementById('question').textContent = state.poll.question;
+    const box = document.getElementById('choices');
+    box.innerHTML = '';
+    for (const c of state.poll.choices) {
+      if (c.key === 'none') continue;
+      const el = document.createElement('div');
+      el.className = 'choice';
+      el.innerHTML = `<div class="head"><span>${esc(c.label)}</span><span class="votes" data-votes="${c.key}">0.0</span></div>
+        <div class="track"><div class="fill" data-fill="${c.key}"></div></div>`;
+      box.appendChild(el);
+    }
+  }
+
+  async function loadJoinUrl() {
+    const res = await fetch('/api/join-url');
+    const j = await res.json();
+    document.getElementById('join-url').textContent = j.url;
+    document.getElementById('join-off').textContent = j.accept_comments ? '' : '（この起動ではウェブからの参加は無効です）';
+  }
+
+  async function refresh() {
+    try {
+      const res = await fetch('/api/tally');
+      const t = await res.json();
+      const s = t.snapshot;
+      let max = 0;
+      for (const c of state.poll.choices) if (c.key !== 'none') max = Math.max(max, s.totals[c.key] || 0);
+      for (const c of state.poll.choices) {
+        if (c.key === 'none') continue;
+        const v = s.totals[c.key] || 0;
+        document.querySelector(`[data-votes="${c.key}"]`).textContent = fmt(v);
+        document.querySelector(`[data-fill="${c.key}"]`).style.width = (max > 0 ? (v / max * 100) : 0) + '%';
+      }
+      document.getElementById('stats').textContent =
+        `参加 ${s.participants} 人 / 確定 ${s.confident} / 揺れ ${s.wavering} / どれでもない ${s.none_count}`;
+      if (t.last) {
+        const label = (k) => (state.poll.choices.find((c) => c.key === k) || { label: k }).label;
+        const dist = state.poll.choices.map((c) => `${esc(c.label)} ${Math.round((t.last.judgement.probabilities[c.key] || 0) * 100)}%`).join(' / ');
+        document.getElementById('last').innerHTML = `最新: <b>${esc(t.last.comment.text)}</b> → ${dist}`;
+      }
+    } catch (e) { /* サーバ停止中は次のポーリングを待つ */ }
+  }
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+
+  loadPoll().then(() => { refresh(); setInterval(refresh, 2000); });
+  loadJoinUrl();
+</script>
+</body>
+</html>

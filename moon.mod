@@ -19,7 +19,7 @@ repository = "https://github.com/hiroyannnn/yuru-poll"
 
 license = "Apache-2.0"
 
-keywords = ["jev", "typesafe", "poll", "survey", "live-chat", "streaming"]
+keywords = [ "jev", "typesafe", "poll", "survey", "live-chat", "streaming" ]
 
 preferred_target = "native"
 
@@ -27,4 +27,5 @@ description = "Loose polling: free-text comments become fractional votes via Typ
 
 import {
   "moonbitlang/async@0.22.1",
+  "bobzhang/qrc@0.1.2",
 }

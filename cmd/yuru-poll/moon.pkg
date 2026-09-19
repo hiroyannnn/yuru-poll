@@ -1,0 +1,18 @@
+import {
+  "hiroyannnn/yuru-poll/lib",
+  "hiroyannnn/yuru-poll/runtime",
+  "hiroyannnn/yuru-poll/jev",
+  "hiroyannnn/yuru-poll/adapters/stdin" @stdin_source,
+  "hiroyannnn/yuru-poll/adapters/terminal" @terminal_sink,
+  "hiroyannnn/yuru-poll/adapters/twitch" @twitch_source,
+  "hiroyannnn/yuru-poll/adapters/youtube" @youtube_source,
+  "hiroyannnn/yuru-poll/adapters/web" @web_adapter,
+  "moonbitlang/core/env",
+  "moonbitlang/core/string",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+}
+
+supported_targets = "-all+native"
+
+pkgtype(kind: "executable")
