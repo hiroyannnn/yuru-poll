@@ -34,17 +34,19 @@
     <div class="last" id="last">まだ発言はありません</div>
   </section>
   <aside>
-    <img id="qr" src="/api/qr.svg" alt="参加用 QR コード">
+    <img id="qr" alt="参加用 QR コード">
     <div class="url" id="join-url"></div>
     <div class="off" id="join-off"></div>
   </aside>
 </main>
 <script>
+  // API の基点。native 版では '/api'、ホスト版では '/r/<ルーム>/api' になる。
+  const API = location.pathname.replace(/\/(join|overlay)?\/?$/, '') + '/api';
   const state = { poll: null };
   const fmt = (v) => (Math.round(v * 10) / 10).toFixed(1);
 
   async function loadPoll() {
-    const res = await fetch('/api/poll');
+    const res = await fetch(API + '/poll');
     state.poll = await res.json();
     document.getElementById('question').textContent = state.poll.question;
     const box = document.getElementById('choices');
@@ -60,7 +62,7 @@
   }
 
   async function loadJoinUrl() {
-    const res = await fetch('/api/join-url');
+    const res = await fetch(API + '/join-url');
     const j = await res.json();
     document.getElementById('join-url').textContent = j.url;
     document.getElementById('join-off').textContent = j.accept_comments ? '' : '（この起動ではウェブからの参加は無効です）';
@@ -68,7 +70,7 @@
 
   async function refresh() {
     try {
-      const res = await fetch('/api/tally');
+      const res = await fetch(API + '/tally');
       const t = await res.json();
       const s = t.snapshot;
       let max = 0;
@@ -93,6 +95,7 @@
 
   loadPoll().then(() => { refresh(); setInterval(refresh, 2000); });
   loadJoinUrl();
+  document.getElementById('qr').src = API + '/qr.svg';
 </script>
 </body>
 </html>

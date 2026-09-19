@@ -1,0 +1,32 @@
+name = "yuru-poll"
+main = "src/index.mjs"
+compatibility_date = "2026-09-01"
+
+# デプロイや dev の前に MoonBit の worker パッケージを JS にビルドする
+[build]
+command = "cd .. && moon build --target js --release"
+watch_dir = ["../worker", "../lib"]
+
+# 静的ページ（native 版と同じ web/ を使う）。ルーティングは Worker が先に行う
+[assets]
+directory = "../web"
+binding = "ASSETS"
+run_worker_first = true
+html_handling = "none"
+
+# 1 ルーム = 1 Durable Object
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "RoomDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RoomDO"]
+
+# 判定は Workers AI の Jev（typesafe/jev）。利用には Cloudflare へのログインが必要
+[ai]
+binding = "AI"
+
+# ローカルで open-jev を相手に動かすときは cloudflare/.dev.vars に次を書く（AI より優先される）
+#   JEV_URL=http://127.0.0.1:8000
+#   JEV_API_KEY=local

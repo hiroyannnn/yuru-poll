@@ -31,6 +31,8 @@ Source                      Engine                          Sink
 | `adapters/terminal` | Sink | native |
 | `adapters/web` | Source（参加フォーム）兼 Sink（司会者画面・OBS オーバーレイ） | native |
 | `cmd/yuru-poll` | Source と Sink の組み合わせを CLI フラグで選ぶだけの薄い層 | native |
+| `worker/` | ホスト版のルーム API。native 版のウェブサーバと同じ API を、ルーム単位で処理する | js |
+| `cloudflare/` | Cloudflare Workers 用の薄い JS グルーと wrangler 設定 | - |
 
 ## セットアップ
 
@@ -154,6 +156,66 @@ Factorio       █████████████████████�
 
 最新: [stdin:alice] やっぱマイクラにする → Factorio 0% / スプラトゥーン 0% / マインクラフト 100% / どれでもない 0%（confidence 0.99）
 ```
+
+## ホスト版（Cloudflare Workers）
+
+ローカルで起動する代わりに、Cloudflare Workers に置いて誰でもルームを作れる形でも動かせます。
+コアと API の処理は MoonBit のまま JS にコンパイルし、Workers 側は薄いグルーだけです。
+
+```
+ブラウザ ─▶ Worker（cloudflare/src/index.mjs）
+             ├─ GET /                  ルーム作成ページ（web/new.html）
+             ├─ POST /api/rooms        ルーム ID を振って作成
+             └─ /r/<room>/...          ─▶ Durable Object（1 ルームに 1 個）
+                                            └─ MoonBit の worker パッケージ
+                                                 ルーティング ─▶ Jev で判定 ─▶ Engine ─▶ state を保存
+```
+
+| URL | 内容 |
+| --- | --- |
+| `/` | ルーム作成ページ。質問と選択肢を入れるとルームができる |
+| `/r/<room>` | 司会者画面（QR 付き）。native 版と同じ `web/index.html` |
+| `/r/<room>/join` | 参加者ページ |
+| `/r/<room>/overlay` | OBS ブラウザソース用 |
+| `/r/<room>/api/...` | native 版と同じ API（`poll` `tally` `comment` `join-url` `qr.svg`） |
+
+- **判定**: Workers AI に載っている Jev（`typesafe/jev`）を `env.AI.run` で呼びます。リクエストとレスポンスの形は TypeSafe の API と同じなので、`lib` の組み立てと解釈をそのまま使います。環境変数 `JEV_URL` を設定すると、そちらの HTTP API（ローカルの open-jev など）が優先されます
+- **状態**: 集計は Durable Object のメモリにあり、変更のたびに `Engine::dump` の JSON をストレージへ保存します。休止から戻るときに `Engine::restore` で復元します（「最新の発言」の表示だけは復元されません）
+- **外部ライブラリ**: JS との出入口は公式の `moonbitlang/async/js_async`（Promise との橋渡し）だけを使い、Workers 用のバインディングには依存していません
+- **注意**: MoonBit のコアはモジュールの初期化時にハッシュ用の乱数シードを作ります。Workers はグローバルスコープでの乱数生成を禁止しているため、グルーは MoonBit のモジュールをリクエストの中で遅延 import しています
+
+### ローカルで動かす
+
+アカウントは不要です。判定先にはローカルの open-jev を使います。
+
+```bash
+printf 'JEV_URL=http://127.0.0.1:8000\nJEV_API_KEY=local\n' > cloudflare/.dev.vars
+```
+
+```bash
+cd cloudflare && npx wrangler dev --local
+```
+
+`http://localhost:8787/` を開くとルーム作成ページが出ます（wrangler が MoonBit のビルドも行います）。
+
+### デプロイ
+
+Cloudflare へのログインが必要です。`.dev.vars` はローカル専用なので、本番では Workers AI の Jev が使われます。
+
+```bash
+cd cloudflare && npx wrangler login
+```
+
+```bash
+cd cloudflare && npx wrangler deploy
+```
+
+### まだ無いもの
+
+- 司会者の認証とルームの削除・リセット（ルーム ID を知っていれば誰でも発言・閲覧できます）
+- レート制限（今あるのは発言 200 文字、リクエスト 20 KB の上限だけです）
+- YouTube / Twitch のチャット連携（ホスト版の入口は今のところウェブフォームだけです）
+- 参加者が非常に多いルームでの state の分割保存
 
 ## poll JSON の書き方
 

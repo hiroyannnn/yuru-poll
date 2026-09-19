@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ゆるアンケートを作る</title>
+<style>
+  :root { --bg: #14161c; --fg: #f4f4f6; --muted: #9aa0ad; --bar: #4f8cff; --line: #3a3f4d; --panel: #1d2029; --accent: #ffb454; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
+  main { max-width: 680px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 6px; }
+  p.lead { color: var(--muted); margin: 0 0 20px; line-height: 1.6; }
+  label { display: block; font-size: .9rem; color: var(--muted); margin: 14px 0 4px; }
+  input, textarea { width: 100%; font-size: 1rem; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); font-family: inherit; }
+  textarea { min-height: 64px; resize: vertical; }
+  .choice { border: 1px solid var(--line); border-radius: 10px; padding: 4px 12px 12px; margin-top: 12px; }
+  .choice .head { display: flex; justify-content: space-between; align-items: center; }
+  .choice .head span { color: var(--accent); font-weight: 700; margin-top: 8px; }
+  button { font-size: 1rem; padding: 10px 16px; border-radius: 8px; border: 0; background: var(--bar); color: #fff; cursor: pointer; }
+  button.ghost { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+  button.small { padding: 4px 10px; font-size: .85rem; margin-top: 8px; }
+  button:disabled { opacity: .5; }
+  .row { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+  .hint { color: var(--muted); font-size: .85rem; margin-top: 4px; line-height: 1.5; }
+  .error { color: #ff7b7b; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ゆるアンケートを作る</h1>
+  <p class="lead">参加者は選択肢を選ばず、ひとこと言うだけ。発言を AI が確率分布に変えて、小数票で集計します。</p>
+
+  <form id="form">
+    <label for="question">質問</label>
+    <input id="question" required maxlength="100" placeholder="次のゲーム何やる？">
+    <div id="choices"></div>
+    <div class="row">
+      <button type="button" class="ghost" id="add">選択肢を足す</button>
+    </div>
+    <div class="hint">「支持する人の言い回し」に略称や口癖を書くほど判定が当たります。「どれでもない」は自動で付きます。</div>
+    <div class="row">
+      <button type="submit" id="create">ルームを作る</button>
+    </div>
+    <div class="error" id="error"></div>
+  </form>
+</main>
+<script>
+  const MAX_CHOICES = 8;
+  const box = document.getElementById('choices');
+
+  function addChoice(label = '', description = '') {
+    if (box.children.length >= MAX_CHOICES) return;
+    const el = document.createElement('div');
+    el.className = 'choice';
+    el.innerHTML = `<div class="head"><span></span><button type="button" class="ghost small" data-remove>消す</button></div>
+      <label>名前</label><input data-label required maxlength="40" placeholder="Factorio">
+      <label>支持する人の言い回し</label><textarea data-description maxlength="300" placeholder="ファクトリオ、工場、自動化。「工場建てたい」「ロケット飛ばそう」"></textarea>`;
+    el.querySelector('[data-label]').value = label;
+    el.querySelector('[data-description]').value = description;
+    el.querySelector('[data-remove]').addEventListener('click', () => { if (box.children.length > 2) { el.remove(); renumber(); } });
+    box.appendChild(el);
+    renumber();
+  }
+
+  function renumber() {
+    [...box.children].forEach((el, i) => { el.querySelector('.head span').textContent = `選択肢 ${i + 1}`; });
+    document.getElementById('add').disabled = box.children.length >= MAX_CHOICES;
+  }
+
+  document.getElementById('add').addEventListener('click', () => addChoice());
+
+  document.getElementById('form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const button = document.getElementById('create');
+    const error = document.getElementById('error');
+    error.textContent = '';
+    const poll = {
+      question: document.getElementById('question').value.trim(),
+      choices: [...box.children].map((el, i) => ({
+        key: `c${i + 1}`,
+        label: el.querySelector('[data-label]').value.trim(),
+        description: el.querySelector('[data-description]').value.trim(),
+      })),
+    };
+    button.disabled = true;
+    try {
+      const res = await fetch('/api/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(poll) });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      location.href = j.host_url;
+    } catch (e) {
+      error.textContent = '作れませんでした: ' + e.message;
+      button.disabled = false;
+    }
+  });
+
+  addChoice();
+  addChoice();
+</script>
+</body>
+</html>
