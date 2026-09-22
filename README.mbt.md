@@ -72,9 +72,11 @@ Open `http://localhost:8787/` for the host screen. It shows the results, the joi
 | `--source stdin\|web\|youtube\|twitch` | Where remarks come from. Repeatable (default `stdin`) |
 | `--sink terminal\|web` | Where the tally goes. Repeatable (default `terminal`) |
 | `--twitch <channel>` | Channel for `--source twitch`. Connects anonymously over TLS; no OAuth needed |
-| `--youtube <videoId>` | Live video for `--source youtube`. Needs `YOUTUBE_API_KEY` (YouTube Data API v3) |
+| `--youtube <videoId>` | Live video for `--source youtube`. Works without a key (see below); uses the YouTube Data API v3 if `YOUTUBE_API_KEY` is set |
 | `--port <n>` | Web server port (default 8787) |
 | `--public-url <url>` | Base of the join URL (default: guessed from the LAN IP) |
+
+**YouTube Live without an API key.** By default the YouTube source reads chat the way the browser does: it loads `youtube.com/live_chat?v=<videoId>`, takes the continuation token, and polls `youtubei/v1/live_chat/get_live_chat`. This is the same approach common comment viewers use, needs no key and has no quota, but it is unofficial and can break when YouTube changes its pages. Set `YOUTUBE_API_KEY` to use the official Data API v3 instead (it consumes quota). Only remarks posted after the poll starts are counted.
 
 Pages served by the web adapter:
 
@@ -220,5 +222,6 @@ The core is tested on wasm, wasm-gc, js and native. Native-only packages are tes
 - [naoto24kawa/moonqr](https://github.com/elchika-inc/moonqr) (Apache-2.0) — QR code generation; its decoder is used in tests to prove the generated codes are readable. Contains portions derived from jsQR (Apache-2.0) and qrcode-generator (MIT).
 - [moonbitlang/async](https://github.com/moonbitlang/async) (Apache-2.0) — event loop, sockets, TLS, HTTP client/server, Promise interop.
 - [TypeSafe Jev](https://docs.typesafe.ai/) and [open-jev](https://github.com/daseinlabs/open-jev) — the judge.
+- [hiroyannnn/yuru-come](https://github.com/hiroyannnn/yuru-come) (Apache-2.0, same author) — the keyless YouTube Live chat reader and the CI workflow were ported from it.
 
 See `NOTICE` for license details. yuru-poll itself is licensed under Apache-2.0.

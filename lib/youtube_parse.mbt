@@ -3,6 +3,8 @@
 pub suberror YouTubeError {
   VideoNotFound
   NotLive
+  /// チャットが無効・視聴者限定など。画面に出る文言を持つ
+  ChatUnavailable(String)
   TypeMismatch(String)
 } derive(Debug, Eq)
 

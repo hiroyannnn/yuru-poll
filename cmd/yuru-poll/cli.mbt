@@ -29,7 +29,7 @@ pub let usage : String =
   #|  --source stdin|web|youtube|twitch   発言の入口（複数指定可、既定 stdin）
   #|  --sink terminal|web                 集計の出口（複数指定可、既定 terminal）
   #|  --twitch <channel>                  Twitch のチャンネル名（--source twitch 用）
-  #|  --youtube <videoId>                 YouTube Live の動画 ID（--source youtube 用、YOUTUBE_API_KEY が必要）
+  #|  --youtube <videoId>                 YouTube Live の動画 ID（--source youtube 用。YOUTUBE_API_KEY があれば Data API、無ければキー無しで読む）
   #|  --port <n>                          ウェブサーバのポート（既定 8787）
   #|  --public-url <url>                  参加用 URL の元（既定は LAN IP から推定）
   #|  --web-dir <dir>                     静的ファイルの場所（既定 web）
