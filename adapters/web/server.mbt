@@ -90,7 +90,7 @@ async fn WebServer::handle(
         "accept_comments": self.accept_comments,
       })
     (Get, "/api/qr.svg") =>
-      match @lib.qr_svg(self.join_url) {
+      match @kit.qr_svg(self.join_url) {
         Some(svg) => {
           conn.send_response(
             200,

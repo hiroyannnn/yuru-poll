@@ -1,47 +1,25 @@
 ///|
-/// JEV_URL が無いときの既定（ローカルの open-jev）。
-pub const DEFAULT_URL : String = "http://127.0.0.1:8000"
-
-///|
-/// JEV_API_KEY が無いときの既定。
-pub const DEFAULT_API_KEY : String = "local"
-
-///|
+/// yuru-poll の判定。送信と一時的な失敗の再試行は yuru-kit の JevClient に任せ、
+/// ここでは poll の質問の組み立てと、応答の解釈だけを行う。
 pub suberror JevError {
-  /// 200 以外のステータス（コード, 本文）
-  HttpStatus(Int, String)
-  /// 本文が JSON として壊れている
-  InvalidJson(String)
-  /// JSON だが期待した形ではない
+  /// 応答は JSON だが、期待した形ではない
   BadResponse(@lib.ResponseError)
 } derive(Debug)
 
 ///|
-/// TypeSafe Jev 互換 API（`POST /v1/systemone`）のクライアント。
 pub struct JevClient {
-  base_url : String
-  api_key : String
-  /// リクエストに載せるモデル名（JEV_MODEL。Vercel AI Gateway では `typesafe-ai/jev`）
-  model : String
+  transport : @kit_jev.JevClient
 }
 
 ///|
-pub fn JevClient::new(
-  base_url? : String = DEFAULT_URL,
-  api_key? : String = DEFAULT_API_KEY,
-  model? : String = @lib.JEV_MODEL,
-) -> JevClient {
-  { base_url: base_url.trim_end(chars="/").to_owned(), api_key, model, }
-}
-
-///|
-/// 環境変数 JEV_URL / JEV_API_KEY から作る。
+/// 環境変数 JEV_URL / JEV_API_KEY / JEV_MODEL から作る。
 pub fn JevClient::from_env() -> JevClient {
-  JevClient::new(
-    base_url=@env.get_env_var("JEV_URL").unwrap_or(DEFAULT_URL),
-    api_key=@env.get_env_var("JEV_API_KEY").unwrap_or(DEFAULT_API_KEY),
-    model=@env.get_env_var("JEV_MODEL").unwrap_or(@lib.JEV_MODEL),
-  )
+  { transport: @kit_jev.JevClient::from_env(), }
+}
+
+///|
+pub fn JevClient::new(transport : @kit_jev.JevClient) -> JevClient {
+  { transport, }
 }
 
 ///|
@@ -51,21 +29,13 @@ pub async fn JevClient::judge(
   poll : @lib.Poll,
   comment : @lib.Comment,
 ) -> @lib.Judgement {
-  let headers : @http.Headers = Map::from_array([
-    (@http.CaseInsensitiveString("Authorization"), "Bearer \{self.api_key}"),
-    (@http.CaseInsensitiveString("Content-Type"), "application/json"),
-  ])
-  let body = @lib.build_request(poll, comment.text, model=self.model).stringify()
-  let (response, data) = @http.post(
-    "\{self.base_url}/v1/systemone",
-    body,
-    headers~,
+  let request = @lib.build_request(
+    poll,
+    comment.text,
+    model=self.transport.model,
   )
-  if response.code != 200 {
-    raise HttpStatus(response.code, data.text())
-  }
-  let json = data.json() catch { err => raise InvalidJson(err.to_string()) }
-  @lib.parse_response(json) catch {
+  let response = self.transport.systemone(request)
+  @lib.parse_response(response) catch {
     err => raise BadResponse(err)
   }
 }

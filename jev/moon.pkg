@@ -1,7 +1,6 @@
 import {
   "hiroyannnn/yuru-poll/lib",
-  "moonbitlang/core/env",
-  "moonbitlang/async/http",
+  "hiroyannnn/yuru-kit/jev" @kit_jev,
 }
 
 supported_targets = "-all+native"

@@ -3,6 +3,10 @@ Copyright 2026 hiroyannnn
 
 This product is licensed under the Apache License, Version 2.0 (see LICENSE).
 
+The Twitch / YouTube / stdin readers, the Jev transport, .env loading and QR codes
+come from hiroyannnn/yuru-kit (https://github.com/hiroyannnn/yuru-kit, same author,
+Apache License, Version 2.0).
+
 This product depends on the following third-party MoonBit packages.
 Their license texts are reproduced below as required by their terms.
 

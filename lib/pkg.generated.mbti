@@ -3,13 +3,10 @@ package "hiroyannnn/yuru-poll/lib"
 
 import {
   "moonbitlang/core/debug",
-  "naoto24kawa/moonqr/encode",
 }
 
 // Values
 pub const CONFIDENT_THRESHOLD : Double = 0.8
-
-pub const DEFAULT_POLLING_INTERVAL_MS : Int = 5000
 
 pub const HISTORY_LIMIT : Int = 50
 
@@ -27,47 +24,15 @@ pub fn display_width(String) -> Int
 
 pub fn format_votes(Double) -> String
 
-pub fn innertube_live_chat_body(InnertubeConfig, String) -> Json
-
-pub fn innertube_live_chat_url(InnertubeConfig) -> String
-
-pub fn live_chat_messages_url(String, String, String?) -> String
-
-pub fn merge_env(Map[String, String], Map[String, String]) -> Map[String, String]
-
-pub fn parse_dotenv(String) -> Map[String, String]
-
-pub fn parse_get_live_chat(Json) -> LiveChatPage raise YouTubeError
-
-pub fn parse_irc_line(String) -> IrcMessage
-
-pub fn parse_live_chat_id(Json) -> String raise YouTubeError
-
-pub fn parse_live_chat_page(Json) -> LiveChatPage raise YouTubeError
-
-pub fn parse_live_chat_page_html(String) -> InnertubeConfig raise YouTubeError
-
 pub fn parse_response(Json) -> Judgement raise ResponseError
 
 pub fn parse_response_text(String) -> Judgement raise ResponseError
 
-pub fn parse_stdin_line(String, at~ : Int64, anonymous_id? : String) -> Comment?
-
 pub fn participant_id(String, String) -> String
-
-pub fn pong_line(String) -> String
-
-pub fn qr_matrix(String) -> @encode.Matrix?
-
-pub fn qr_svg(String) -> String?
 
 pub fn render_last_comment(Update) -> String
 
 pub fn render_snapshot(Poll, Snapshot, width? : Int) -> String
-
-pub fn twitch_login_lines(String, String) -> Array[String]
-
-pub fn videos_list_url(String, String) -> String
 
 // Errors
 pub suberror PersistError {
@@ -87,13 +52,6 @@ pub suberror PollError {
 pub suberror ResponseError {
   InvalidJson(String)
   MissingField(String)
-  TypeMismatch(String)
-} derive(Eq, @debug.Debug)
-
-pub suberror YouTubeError {
-  VideoNotFound
-  NotLive
-  ChatUnavailable(String)
   TypeMismatch(String)
 } derive(Eq, @debug.Debug)
 
@@ -130,18 +88,6 @@ pub(all) struct HistoryEntry {
   judgement : Judgement
 } derive(Eq, ToJson, @debug.Debug)
 
-pub(all) struct InnertubeConfig {
-  api_key : String
-  client_version : String
-  continuation : String
-} derive(Eq, @debug.Debug)
-
-pub enum IrcMessage {
-  Ping(String)
-  Chat(Comment)
-  Other(String)
-} derive(Eq, @debug.Debug)
-
 pub(all) struct Judgement {
   choice : String
   probabilities : Map[String, Double]
@@ -149,12 +95,6 @@ pub(all) struct Judgement {
 } derive(Eq, ToJson, @debug.Debug)
 pub fn Judgement::from_json(Json, path~ : String) -> Self raise ResponseError
 pub fn Judgement::probability(Self, String) -> Double
-
-pub(all) struct LiveChatPage {
-  comments : Array[Comment]
-  next_page_token : String?
-  polling_interval_ms : Int
-} derive(@debug.Debug)
 
 pub(all) struct Poll {
   question : String

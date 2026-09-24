@@ -30,10 +30,10 @@ Source                      Engine                          Sink
 
 | パッケージ | 役割 | ターゲット |
 | --- | --- | --- |
-| `lib/` | Poll、リクエスト/レスポンス、Tally、Engine、発言履歴、レート制限器、QR、Source/Sink trait、各種パース、描画（純粋） | all |
+| `lib/` | Poll、リクエスト/レスポンス、Tally、Engine、発言履歴、レート制限器、Source/Sink trait、描画（純粋） | all |
 | `runtime/` | 全 Source を同時に走らせ、注入した判定関数で直列に判定して Engine へ流す | native |
 | `jev/` | Jev HTTP クライアント（`JEV_URL` / `JEV_API_KEY`） | native |
-| `adapters/stdin` `adapters/twitch` `adapters/youtube` | Source | native |
+| `adapters/chat` | [yuru-kit](https://github.com/hiroyannnn/yuru-kit) の Twitch・YouTube・標準入力の読み取りを Source にする | native |
 | `adapters/terminal` | Sink | native |
 | `adapters/web` | Source（参加フォーム）兼 Sink（司会者画面・OBS オーバーレイ） | native |
 | `cmd/yuru-poll` | Source と Sink の組み合わせを CLI フラグで選ぶだけの薄い層 | native |
@@ -353,7 +353,7 @@ pub(open) trait Sink {
 
 1. `adapters/<name>/moon.pkg` を作り `hiroyannnn/yuru-poll/lib` と `hiroyannnn/yuru-poll/runtime` を import（`supported_targets = "-all+native"`）
 2. struct を定義し `pub impl @lib.Source for X with run(self, submit) { ... }` で発言を `submit` に流す
-3. 生テキストの解釈は純粋関数として `lib/` に置き、`_test.mbt` で全ターゲットのテストを書く（`twitch_parse.mbt` / `youtube_parse.mbt` が例）
+3. 新しい配信サイトのチャットなら、読み取りは [yuru-kit](https://github.com/hiroyannnn/yuru-kit) に `ChatSource` として足す（生テキストの解釈は純粋関数にして全ターゲットでテスト）。yuru-come からも使えるようになり、yuru-poll では `@chat.ChatAdapter::new(...)` で Source にできる
 4. `cmd/yuru-poll/main.mbt` の `match name` に 1 行足す
 
 ### Sink を足す（例: CSV 書き出し、Slack 投稿）
@@ -371,6 +371,7 @@ pub(open) trait Sink {
 
 ## Acknowledgments
 
+- [hiroyannnn/yuru-kit](https://github.com/hiroyannnn/yuru-kit)（Apache-2.0、同じ作者）— Twitch・YouTube・標準入力の読み取り、Jev の送信、`.env` の読み込み、QR。yuru-come と共通
 - [naoto24kawa/moonqr](https://github.com/elchika-inc/moonqr)（Apache-2.0）— 参加用 QR コードの生成に使用。テストではそのデコーダで、生成した QR が実際に読めることを検証しています。jsQR（Apache-2.0）と qrcode-generator（MIT）に由来する部分を含みます
 - [moonbitlang/async](https://github.com/moonbitlang/async)（Apache-2.0）— イベントループ、ソケット、TLS、HTTP クライアント/サーバ
 - [TypeSafe Jev](https://docs.typesafe.ai/) / [open-jev](https://github.com/daseinlabs/open-jev) — 判定 API
