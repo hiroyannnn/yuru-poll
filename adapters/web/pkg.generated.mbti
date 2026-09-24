@@ -14,7 +14,7 @@ pub async fn guess_lan_ip() -> String
 pub struct WebServer {
   engine : @lib.Engine
   port : Int
-  web_dir : String
+  web_dir : String?
   public_url : String?
   accept_comments : Bool
   mut latest : @lib.Update?

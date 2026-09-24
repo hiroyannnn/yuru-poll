@@ -1,10 +1,23 @@
 ///|
 async fn main {
   let options = parse_cli(@env.args()[1:]) catch {
+    ShowVersion => {
+      println("yuru-poll \{VERSION}")
+      return
+    }
+    ShowHelp => {
+      println(usage)
+      return
+    }
     err => {
       println("引数エラー: \{Repr(err)}\n\n\{usage}")
       return
     }
+  }
+  // .env があれば、環境変数に無いキーだけ補う（JEV_API_KEY などを export しなくてよい）
+  let loaded = @runtime.load_dotenv()
+  if loaded > 0 {
+    @runtime.log(".env から \{loaded} 件を読み込みました")
   }
   start(options) catch {
     err => println("エラー: \{err}")
@@ -25,7 +38,7 @@ async fn start(options : CliOptions) -> Unit {
     let web = @web_adapter.WebServer::new(
       engine,
       port=options.port,
-      web_dir=options.web_dir,
+      web_dir?=options.web_dir,
       public_url?=options.public_url,
       accept_comments=wants_web_source,
     )

@@ -33,6 +33,10 @@ pub fn innertube_live_chat_url(InnertubeConfig) -> String
 
 pub fn live_chat_messages_url(String, String, String?) -> String
 
+pub fn merge_env(Map[String, String], Map[String, String]) -> Map[String, String]
+
+pub fn parse_dotenv(String) -> Map[String, String]
+
 pub fn parse_get_live_chat(Json) -> LiveChatPage raise YouTubeError
 
 pub fn parse_irc_line(String) -> IrcMessage

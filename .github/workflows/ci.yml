@@ -20,6 +20,8 @@ jobs:
         run: moon check --target all
       - name: Interfaces and formatting are committed
         run: moon info && moon fmt && git diff --exit-code
+      - name: Embedded assets are up to date
+        run: python3 scripts/embed_assets.py --check
       - name: Test
         run: moon test --target all
       - name: Workers glue parses

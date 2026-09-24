@@ -12,7 +12,8 @@
 pub struct WebServer {
   engine : @lib.Engine
   port : Int
-  web_dir : String
+  /// 静的ファイルの場所。None ならバイナリに埋め込んだもの（scripts/embed_assets.py が生成）を使う
+  web_dir : String?
   public_url : String?
   /// `--source web` のときだけ発言を受け付ける
   accept_comments : Bool
@@ -24,7 +25,7 @@ pub struct WebServer {
 pub fn WebServer::new(
   engine : @lib.Engine,
   port? : Int = 8787,
-  web_dir? : String = "web",
+  web_dir? : String,
   public_url? : String,
   accept_comments? : Bool = true,
 ) -> WebServer {
@@ -173,24 +174,42 @@ async fn WebServer::handle_comment(
 }
 
 ///|
-/// `web_dir` の静的ファイルを返す。毎回読むので編集が即反映される。
+/// 静的ファイルを返す。`web_dir` があればそこから毎回読む（編集が即反映される）。
+/// 無ければバイナリに埋め込んだもの（scripts/embed_assets.py が生成）を返す。
 async fn WebServer::send_static(
   self : WebServer,
   conn : @http.ServerConnection,
   name : String,
 ) -> Unit {
-  let data = @fs.read_file("\{self.web_dir}/\{name}") catch {
-    err => {
-      @runtime.log("web: \{self.web_dir}/\{name} を読めません: \{err}")
-      return send_json(conn, 500, { "error": "static file not found: \{name}" })
+  match self.web_dir {
+    Some(dir) => {
+      let data = @fs.read_file("\{dir}/\{name}") catch {
+        err => {
+          @runtime.log("web: \{dir}/\{name} を読めません: \{err}")
+          return send_json(conn, 500, {
+            "error": "static file not found: \{name}",
+          })
+        }
+      }
+      conn.send_response(
+        200,
+        "OK",
+        extra_headers=content_type("text/html; charset=utf-8"),
+      )
+      conn.write(data)
+    }
+    None => {
+      guard embedded_assets.get(name) is Some(text) else {
+        return send_json(conn, 404, { "error": "not found" })
+      }
+      conn.send_response(
+        200,
+        "OK",
+        extra_headers=content_type("text/html; charset=utf-8"),
+      )
+      conn.write(text)
     }
   }
-  conn.send_response(
-    200,
-    "OK",
-    extra_headers=content_type("text/html; charset=utf-8"),
-  )
-  conn.write(data)
 }
 
 ///|
