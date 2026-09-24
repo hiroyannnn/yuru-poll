@@ -39,9 +39,22 @@ Source                       Engine                           Sink
 | `worker/` | Room API for the hosted version (same API as the native web server, per room) | js |
 | `cloudflare/` | Thin JS glue and wrangler config for Cloudflare Workers | - |
 
-## Quick start (local)
+## Install (prebuilt binary)
 
-You need the [MoonBit toolchain](https://www.moonbitlang.com/download/) and access to a Jev-compatible endpoint.
+Download the archive for your machine (macOS Apple Silicon or Linux x86_64) from [Releases](https://github.com/hiroyannnn/yuru-poll/releases). It contains the `yuru-poll` binary, sample polls, the READMEs and a `.env.example`.
+
+```bash
+tar xzf yuru-poll-v0.1.0-macos-arm64.tar.gz
+cd yuru-poll-v0.1.0-macos-arm64
+cp .env.example .env   # put your AI Gateway API key in JEV_API_KEY
+./yuru-poll --poll polls/next-game.json --source web --sink web
+```
+
+The host screen, join page and OBS overlay are embedded in the binary, so no other files are needed. `.env` in the current directory is read at startup; real environment variables take precedence. On macOS, if the first run is blocked as coming from an unidentified developer, run `xattr -d com.apple.quarantine yuru-poll`.
+
+## Quick start (from source)
+
+You need the [MoonBit toolchain](https://www.moonbitlang.com/download/) and access to a Jev-compatible endpoint. `make check` runs the pre-commit checks, `make test` the tests on every target, and `make assets` re-embeds `web/` after you edit it (or pass `--web-dir web` to serve the files directly while editing).
 
 ```bash
 moon test --target all
@@ -75,6 +88,8 @@ Open `http://localhost:8787/` for the host screen. It shows the results, the joi
 | `--youtube <videoId>` | Live video for `--source youtube`. Works without a key (see below); uses the YouTube Data API v3 if `YOUTUBE_API_KEY` is set |
 | `--port <n>` | Web server port (default 8787) |
 | `--public-url <url>` | Base of the join URL (default: guessed from the LAN IP) |
+| `--web-dir <dir>` | Serve static files from a directory instead of the copies embedded in the binary |
+| `--version` | Print the version |
 
 **YouTube Live without an API key.** By default the YouTube source reads chat the way the browser does: it loads `youtube.com/live_chat?v=<videoId>`, takes the continuation token, and polls `youtubei/v1/live_chat/get_live_chat`. This is the same approach common comment viewers use, needs no key and has no quota, but it is unofficial and can break when YouTube changes its pages. Set `YOUTUBE_API_KEY` to use the official Data API v3 instead (it consumes quota). Only remarks posted after the poll starts are counted.
 
@@ -222,6 +237,6 @@ The core is tested on wasm, wasm-gc, js and native. Native-only packages are tes
 - [naoto24kawa/moonqr](https://github.com/elchika-inc/moonqr) (Apache-2.0) — QR code generation; its decoder is used in tests to prove the generated codes are readable. Contains portions derived from jsQR (Apache-2.0) and qrcode-generator (MIT).
 - [moonbitlang/async](https://github.com/moonbitlang/async) (Apache-2.0) — event loop, sockets, TLS, HTTP client/server, Promise interop.
 - [TypeSafe Jev](https://docs.typesafe.ai/) and [open-jev](https://github.com/daseinlabs/open-jev) — the judge.
-- [hiroyannnn/yuru-come](https://github.com/hiroyannnn/yuru-come) (Apache-2.0, same author) — the keyless YouTube Live chat reader and the CI workflow were ported from it.
+- [hiroyannnn/yuru-come](https://github.com/hiroyannnn/yuru-come) (Apache-2.0, same author) — the keyless YouTube Live chat reader, `.env` loading, embedded web assets and the CI / release workflows were ported from it.
 
 See `NOTICE` for license details. yuru-poll itself is licensed under Apache-2.0.

@@ -8,7 +8,8 @@ pub(all) struct CliOptions {
   public_url : String?
   twitch_channel : String?
   youtube_video_id : String?
-  web_dir : String
+  /// 静的ファイルの場所。None ならバイナリに埋め込んだものを使う
+  web_dir : String?
 } derive(Debug)
 
 ///|
@@ -16,6 +17,10 @@ pub suberror CliError {
   MissingValue(String)
   UnknownOption(String)
   MissingPoll
+  /// `--version` / `-V`。エラーではなく、main がバージョンを表示して終わる
+  ShowVersion
+  /// `--help` / `-h`
+  ShowHelp
   BadNumber(String)
 } derive(Debug)
 
@@ -32,9 +37,11 @@ pub let usage : String =
   #|  --youtube <videoId>                 YouTube Live の動画 ID（--source youtube 用。YOUTUBE_API_KEY があれば Data API、無ければキー無しで読む）
   #|  --port <n>                          ウェブサーバのポート（既定 8787）
   #|  --public-url <url>                  参加用 URL の元（既定は LAN IP から推定）
-  #|  --web-dir <dir>                     静的ファイルの場所（既定 web）
+  #|  --web-dir <dir>                     静的ファイルの場所（省略時はバイナリに埋め込んだものを使う）
+  #|  --version                           バージョンを表示
   #|
-  #|環境変数: JEV_URL（既定 http://127.0.0.1:8000）、JEV_API_KEY（既定 local）、YOUTUBE_API_KEY
+  #|環境変数: JEV_URL（既定 http://127.0.0.1:8000）、JEV_API_KEY（既定 local）、JEV_MODEL（既定 jev-latest）、YOUTUBE_API_KEY
+  #|カレントディレクトリの .env も読み、環境変数に無いキーだけを補います
 
 ///|
 /// 引数列（プログラム名を除く）を解釈する。
@@ -46,7 +53,7 @@ pub fn parse_cli(args : ArrayView[String]) -> CliOptions raise CliError {
   let mut public_url : String? = None
   let mut twitch_channel : String? = None
   let mut youtube_video_id : String? = None
-  let mut web_dir = "web"
+  let mut web_dir : String? = None
   let mut i = 0
   while i < args.length() {
     let flag = args[i]
@@ -68,7 +75,9 @@ pub fn parse_cli(args : ArrayView[String]) -> CliOptions raise CliError {
       "--public-url" => public_url = Some(value())
       "--twitch" => twitch_channel = Some(value())
       "--youtube" => youtube_video_id = Some(value())
-      "--web-dir" => web_dir = value()
+      "--web-dir" => web_dir = Some(value())
+      "--version" | "-V" => raise ShowVersion
+      "--help" | "-h" => raise ShowHelp
       _ => raise UnknownOption(flag)
     }
     i += 1

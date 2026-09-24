@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  binaries:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: macos-arm64
+          - os: ubuntu-latest
+            target: linux-x86_64
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Install dependencies
+        run: moon update && moon install
+      - name: Test
+        run: moon test --target native
+      - name: Build
+        run: moon build --target native --release
+      - name: Smoke test
+        run: _build/native/release/build/cmd/yuru-poll/yuru-poll.exe --version
+      - name: Package
+        run: |
+          name="yuru-poll-${{ github.event.release.tag_name }}-${{ matrix.target }}"
+          mkdir -p "dist/$name/polls"
+          cp _build/native/release/build/cmd/yuru-poll/yuru-poll.exe "dist/$name/yuru-poll"
+          cp polls/*.json "dist/$name/polls/"
+          cp README.mbt.md "dist/$name/README.md"
+          cp README.ja.md LICENSE NOTICE "dist/$name/"
+          printf 'JEV_URL=https://ai-gateway.vercel.sh/typesafe\nJEV_MODEL=typesafe-ai/jev\nJEV_API_KEY=\n# YOUTUBE_API_KEY=\n' > "dist/$name/.env.example"
+          tar -C dist -czf "dist/$name.tar.gz" "$name"
+      - name: Upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.tar.gz --clobber

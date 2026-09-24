@@ -40,7 +40,23 @@ Source                      Engine                          Sink
 | `worker/` | ホスト版のルーム API。native 版のウェブサーバと同じ API を、ルーム単位で処理する | js |
 | `cloudflare/` | Cloudflare Workers 用の薄い JS グルーと wrangler 設定 | - |
 
-## セットアップ
+## インストール（ビルド済みのバイナリ）
+
+[Releases](https://github.com/hiroyannnn/yuru-poll/releases) から自分の環境のもの（macOS Apple Silicon か Linux x86_64）を落として展開します。中に `yuru-poll`（本体）、サンプルの poll、README、`.env.example` が入っています。
+
+```bash
+tar xzf yuru-poll-v0.1.0-macos-arm64.tar.gz
+cd yuru-poll-v0.1.0-macos-arm64
+cp .env.example .env   # JEV_API_KEY に AI Gateway の API キーを書く
+./yuru-poll --poll polls/next-game.json --source web --sink web
+```
+
+司会者画面、参加ページ、OBS 用オーバーレイはバイナリに埋め込んであるので、ほかのファイルは要りません。起動時にカレントディレクトリの `.env` を読みます（環境変数が優先）。macOS で初回に「開発元を確認できない」と出たら、`xattr -d com.apple.quarantine yuru-poll` で外してください。
+
+## セットアップ（ソースから）
+
+`make check` がコミット前の確認（.mbti、整形、埋め込み資産、型検査）、`make test` が全ターゲットのテスト、`make release v=X.Y.Z` がリリース（バージョン更新と GitHub Release の作成。CI がバイナリを添付）です。`web/` を編集したら `make assets` で埋め込みを作り直してください（`--web-dir web` を付ければ編集が即反映されます）。
+
 
 ```bash
 moon check --target all      # 型チェック
@@ -80,7 +96,8 @@ moon run --target native cmd/yuru-poll -- --poll polls/next-game.json --source s
 | `--youtube <videoId>` | `--source youtube` の動画 ID。キー無しで読める。`YOUTUBE_API_KEY` があれば Data API を使う |
 | `--port <n>` | ウェブサーバのポート（既定 8787） |
 | `--public-url <url>` | 参加用 URL の元（既定は LAN IP から推定） |
-| `--web-dir <dir>` | 静的ファイルの場所（既定 `web`） |
+| `--web-dir <dir>` | 静的ファイルの場所（省略時はバイナリに埋め込んだものを使う） |
+| `--version` | バージョンを表示 |
 
 複数 Source / Sink の同時接続の例（YouTube と Twitch を同時に聞き、ウェブ画面とターミナルに出す）:
 
@@ -357,6 +374,6 @@ pub(open) trait Sink {
 - [naoto24kawa/moonqr](https://github.com/elchika-inc/moonqr)（Apache-2.0）— 参加用 QR コードの生成に使用。テストではそのデコーダで、生成した QR が実際に読めることを検証しています。jsQR（Apache-2.0）と qrcode-generator（MIT）に由来する部分を含みます
 - [moonbitlang/async](https://github.com/moonbitlang/async)（Apache-2.0）— イベントループ、ソケット、TLS、HTTP クライアント/サーバ
 - [TypeSafe Jev](https://docs.typesafe.ai/) / [open-jev](https://github.com/daseinlabs/open-jev) — 判定 API
-- [hiroyannnn/yuru-come](https://github.com/hiroyannnn/yuru-come)（Apache-2.0、同じ作者）— キー無しの YouTube Live チャット読み取りと CI ワークフローを移植しています
+- [hiroyannnn/yuru-come](https://github.com/hiroyannnn/yuru-come)（Apache-2.0、同じ作者）— キー無しの YouTube Live チャット読み取り、`.env` の読み込み、画面の埋め込み、CI とリリースのワークフローを移植しています
 
 ライセンス表記の詳細は `NOTICE` を参照してください。本プロジェクトは Apache-2.0 です。

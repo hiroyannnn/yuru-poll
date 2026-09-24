@@ -8,6 +8,8 @@ import {
 // Values
 pub const DEFAULT_PORT : Int = 8787
 
+pub const VERSION : String = "0.1.0"
+
 pub fn parse_cli(ArrayView[String]) -> CliOptions raise CliError
 
 pub let usage : String
@@ -17,6 +19,8 @@ pub suberror CliError {
   MissingValue(String)
   UnknownOption(String)
   MissingPoll
+  ShowVersion
+  ShowHelp
   BadNumber(String)
 } derive(@debug.Debug)
 
@@ -29,7 +33,7 @@ pub(all) struct CliOptions {
   public_url : String?
   twitch_channel : String?
   youtube_video_id : String?
-  web_dir : String
+  web_dir : String?
 } derive(@debug.Debug)
 
 // Type aliases
