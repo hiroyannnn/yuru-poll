@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hiroyannnn/yuru-poll/adapters/chat"
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct ChatAdapter {
+  inner : &@hiroyannnn/yuru-kit/lib.ChatSource
+}
+pub fn ChatAdapter::new(&@hiroyannnn/yuru-kit/lib.ChatSource) -> Self
+pub impl @hiroyannnn/yuru-poll/lib.Source for ChatAdapter
+
+// Type aliases
+
+// Traits

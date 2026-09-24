@@ -1,10 +1,12 @@
 import {
   "hiroyannnn/yuru-poll/lib",
+  "hiroyannnn/yuru-kit" @kit,
   "hiroyannnn/yuru-kit/sources",
   "moonbitlang/async",
 }
 
 import {
+  "hiroyannnn/yuru-kit" @kit,
   "moonbitlang/async",
 } for "test"
 

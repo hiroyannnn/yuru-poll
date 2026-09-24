@@ -183,7 +183,7 @@ pub async fn route(
     ("GET", "/api/join-url") =>
       ok({ "url": ctx.join_url, "accept_comments": true })
     ("GET", "/api/qr.svg") =>
-      match @lib.qr_svg(ctx.join_url) {
+      match @kit.qr_svg(ctx.join_url) {
         Some(svg) =>
           {
             status: 200,

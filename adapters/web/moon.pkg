@@ -1,6 +1,7 @@
 import {
   "hiroyannnn/yuru-poll/lib",
   "hiroyannnn/yuru-poll/runtime",
+  "hiroyannnn/yuru-kit" @kit,
   "moonbitlang/core/json",
   "moonbitlang/async",
   "moonbitlang/async/fs",

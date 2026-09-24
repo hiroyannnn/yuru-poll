@@ -1,8 +1,0 @@
-import {
-  "hiroyannnn/yuru-poll/lib",
-  "hiroyannnn/yuru-poll/runtime",
-  "moonbitlang/core/env",
-  "moonbitlang/async/stdio",
-}
-
-supported_targets = "-all+native"

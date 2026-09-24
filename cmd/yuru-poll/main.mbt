@@ -14,8 +14,9 @@ async fn main {
       return
     }
   }
+  @sources.set_log_prefix("yuru-poll")
   // .env があれば、環境変数に無いキーだけ補う（JEV_API_KEY などを export しなくてよい）
-  let loaded = @runtime.load_dotenv()
+  let loaded = @sources.load_dotenv()
   if loaded > 0 {
     @runtime.log(".env から \{loaded} 件を読み込みました")
   }
@@ -50,7 +51,8 @@ async fn start(options : CliOptions) -> Unit {
   for name in options.sources {
     match name {
       "web" => ()
-      "stdin" => sources.push(@stdin_source.StdinSource::new())
+      "stdin" =>
+        sources.push(@chat.ChatAdapter::new(@sources.StdinSource::new()))
       "twitch" => {
         guard options.twitch_channel is Some(channel) else {
           println(
@@ -58,7 +60,9 @@ async fn start(options : CliOptions) -> Unit {
           )
           return
         }
-        sources.push(@twitch_source.TwitchSource::new(channel))
+        sources.push(
+          @chat.ChatAdapter::new(@sources.TwitchSource::new(channel)),
+        )
       }
       "youtube" => {
         guard options.youtube_video_id is Some(video_id) else {
@@ -69,9 +73,11 @@ async fn start(options : CliOptions) -> Unit {
         }
         // YOUTUBE_API_KEY があれば Data API v3、無ければキー無しの経路で読む
         sources.push(
-          @youtube_source.YouTubeSource::new(
-            video_id,
-            api_key?=@env.get_env_var("YOUTUBE_API_KEY"),
+          @chat.ChatAdapter::new(
+            @sources.YouTubeSource::new(
+              video_id,
+              api_key?=@env.get_env_var("YOUTUBE_API_KEY"),
+            ),
           ),
         )
       }

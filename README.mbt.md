@@ -31,10 +31,11 @@ Source                       Engine                           Sink
 
 | Package | Role | Target |
 | --- | --- | --- |
-| `lib/` | Poll, request/response, tally, engine, history, rate limiter, QR, chat parsers, rendering — all pure | all |
+| `lib/` | Poll, request/response, tally, engine, history, rate limiter, rendering — all pure | all |
 | `runtime/` | Runs all sources concurrently and serializes judging through an injected judge function | native |
 | `jev/` | Jev HTTP client | native |
-| `adapters/*` | `stdin`, `twitch`, `youtube` sources; `terminal` sink; `web` source + sink | native |
+| `adapters/chat` | Wraps the Twitch, YouTube and stdin readers from [yuru-kit](https://github.com/hiroyannnn/yuru-kit) as a source | native |
+| `adapters/terminal`, `adapters/web` | `terminal` sink; `web` source + sink | native |
 | `cmd/yuru-poll` | Thin CLI that picks sources and sinks by flags | native |
 | `worker/` | Room API for the hosted version (same API as the native web server, per room) | js |
 | `cloudflare/` | Thin JS glue and wrangler config for Cloudflare Workers | - |
@@ -218,8 +219,8 @@ pub(open) trait Sink {
 }
 ```
 
-1. Create `adapters/<name>/` with `supported_targets = "-all+native"` and implement the trait.
-2. Keep text parsing pure in `lib/` with tests for every target (`twitch_parse.mbt` and `youtube_parse.mbt` are examples).
+1. For a new live chat service, add the reader to [yuru-kit](https://github.com/hiroyannnn/yuru-kit) as a `ChatSource` (keeping the text parsing pure and tested for every target), so yuru-come gets it too. `@chat.ChatAdapter::new(...)` turns it into a yuru-poll source.
+2. For anything else, create `adapters/<name>/` with `supported_targets = "-all+native"` and implement the trait.
 3. Add one line to the `match` in `cmd/yuru-poll/main.mbt`.
 
 Prefix participant IDs with the source name (`@lib.participant_id("slack", id)` gives `slack:<id>`) so they never collide across sources.
@@ -234,6 +235,7 @@ The core is tested on wasm, wasm-gc, js and native. Native-only packages are tes
 
 ## Acknowledgments
 
+- [hiroyannnn/yuru-kit](https://github.com/hiroyannnn/yuru-kit) (Apache-2.0, same author) — the Twitch, YouTube and stdin readers, the Jev transport, `.env` loading and QR codes, shared with yuru-come.
 - [naoto24kawa/moonqr](https://github.com/elchika-inc/moonqr) (Apache-2.0) — QR code generation; its decoder is used in tests to prove the generated codes are readable. Contains portions derived from jsQR (Apache-2.0) and qrcode-generator (MIT).
 - [moonbitlang/async](https://github.com/moonbitlang/async) (Apache-2.0) — event loop, sockets, TLS, HTTP client/server, Promise interop.
 - [TypeSafe Jev](https://docs.typesafe.ai/) and [open-jev](https://github.com/daseinlabs/open-jev) — the judge.
