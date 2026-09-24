@@ -77,7 +77,7 @@ moon run --target native cmd/yuru-poll -- --poll polls/next-game.json --source s
 | `--source stdin\|web\|youtube\|twitch` | 発言の入口。複数指定可（既定 `stdin`） |
 | `--sink terminal\|web` | 集計の出口。複数指定可（既定 `terminal`） |
 | `--twitch <channel>` | `--source twitch` のチャンネル名（`#` 不要） |
-| `--youtube <videoId>` | `--source youtube` の動画 ID（`YOUTUBE_API_KEY` が必要） |
+| `--youtube <videoId>` | `--source youtube` の動画 ID。キー無しで読める。`YOUTUBE_API_KEY` があれば Data API を使う |
 | `--port <n>` | ウェブサーバのポート（既定 8787） |
 | `--public-url <url>` | 参加用 URL の元（既定は LAN IP から推定） |
 | `--web-dir <dir>` | 静的ファイルの場所（既定 `web`） |
@@ -85,7 +85,7 @@ moon run --target native cmd/yuru-poll -- --poll polls/next-game.json --source s
 複数 Source / Sink の同時接続の例（YouTube と Twitch を同時に聞き、ウェブ画面とターミナルに出す）:
 
 ```bash
-YOUTUBE_API_KEY=... moon run --target native cmd/yuru-poll -- \
+moon run --target native cmd/yuru-poll -- \
   --poll polls/next-game.json \
   --source youtube --youtube <videoId> \
   --source twitch --twitch <channel> \
@@ -113,21 +113,26 @@ moon run --target native cmd/yuru-poll -- --poll polls/next-game.json --source t
 
 ### Source: YouTube Live チャット
 
-YouTube Data API v3 を API キーで使います（公開ライブなら OAuth 不要）。
+**既定では API キー無しで読みます。** ブラウザと同じ経路で、`youtube.com/live_chat?v=<videoId>` のページから継続トークンを取り、`youtubei/v1/live_chat/get_live_chat` をポーリングします。マルチコメントビューアやわんコメと同じ方式で、キーもクォータも要りません。ただし非公式なので、YouTube 側の変更で壊れることがあります。`<videoId>` は配信の URL `https://www.youtube.com/watch?v=<videoId>` の後ろの部分です。
+
+```bash
+moon run --target native cmd/yuru-poll -- --poll polls/next-game.json --source youtube --youtube <videoId> --sink web
+```
+
+- 数えるのは poll を始めてからの発言だけです。ページに最初から載っている過去の発言は読みません
+- チャットが無効・視聴者限定の配信では、画面に出る理由の文言をログに出して止まります。配信が終わると Source も終わります
+- 参加者 ID は `youtube:<channelId>` です
+
+`YOUTUBE_API_KEY` を設定すると、公式の YouTube Data API v3（公開ライブなら OAuth 不要）を使います。こちらはクォータを消費します。
 
 1. [Google Cloud Console](https://console.cloud.google.com/) でプロジェクトを作り、「YouTube Data API v3」を有効化
 2. 「認証情報」→「API キー」を作成し、環境変数 `YOUTUBE_API_KEY` に設定
-3. 配信の URL `https://www.youtube.com/watch?v=<videoId>` の `<videoId>` を `--youtube` に渡す
 
-```bash
-YOUTUBE_API_KEY=AIza... moon run --target native cmd/yuru-poll -- \
-  --poll polls/next-game.json --source youtube --youtube <videoId> --sink terminal
-```
+`videos.list(part=liveStreamingDetails)` で `activeLiveChatId` を取り、`liveChatMessages.list(part=snippet,authorDetails)` を `nextPageToken` で差分取得します。ポーリング間隔は API が返す `pollingIntervalMillis` 以上（下限 5 秒）にしてクォータを節約します。
 
-`videos.list(part=liveStreamingDetails)` で `activeLiveChatId` を取り、
-`liveChatMessages.list(part=snippet,authorDetails)` を `nextPageToken` で差分取得します。
-ポーリング間隔は API が返す `pollingIntervalMillis` 以上（下限 5 秒）にしてクォータを節約します。
-参加者 ID は `youtube:<channelId>` です。
+### 既存のコメントビューアとの併用
+
+yuru-poll は YouTube と Twitch に別々に直接つなぐので、わんコメやマルチコメントビューアなど、今お使いのコメントビューアと同じ配信に並べて使えます。読み上げやコメントの表示はそちらに任せてください。ほかのサイトのコメントは、コメントビューアのログや出力を `参加者ID<TAB>発言` の形に変換できれば `--source stdin` に流し込めます。わんコメの WebSocket API は現在非公開で、外部連携は公式に相談する扱いになっているため、yuru-poll から直接はつないでいません。
 
 ### Source / Sink: ウェブ（参加フォーム・司会者画面・OBS オーバーレイ）
 
@@ -352,5 +357,6 @@ pub(open) trait Sink {
 - [naoto24kawa/moonqr](https://github.com/elchika-inc/moonqr)（Apache-2.0）— 参加用 QR コードの生成に使用。テストではそのデコーダで、生成した QR が実際に読めることを検証しています。jsQR（Apache-2.0）と qrcode-generator（MIT）に由来する部分を含みます
 - [moonbitlang/async](https://github.com/moonbitlang/async)（Apache-2.0）— イベントループ、ソケット、TLS、HTTP クライアント/サーバ
 - [TypeSafe Jev](https://docs.typesafe.ai/) / [open-jev](https://github.com/daseinlabs/open-jev) — 判定 API
+- [hiroyannnn/yuru-come](https://github.com/hiroyannnn/yuru-come)（Apache-2.0、同じ作者）— キー無しの YouTube Live チャット読み取りと CI ワークフローを移植しています
 
 ライセンス表記の詳細は `NOTICE` を参照してください。本プロジェクトは Apache-2.0 です。

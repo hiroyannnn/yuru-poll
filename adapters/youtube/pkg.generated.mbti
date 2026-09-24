@@ -12,11 +12,11 @@ import {
 // Types and methods
 pub struct YouTubeSource {
   video_id : String
-  api_key : String
+  api_key : String?
   min_interval_ms : Int
   retry_interval_ms : Int
 }
-pub fn YouTubeSource::new(String, String, min_interval_ms? : Int, retry_interval_ms? : Int) -> Self
+pub fn YouTubeSource::new(String, api_key? : String, min_interval_ms? : Int, retry_interval_ms? : Int) -> Self
 pub impl @lib.Source for YouTubeSource
 
 // Type aliases
